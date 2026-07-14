@@ -1,8 +1,10 @@
 """
-Second contract, separate from evaluator.py: governance patterns (e.g.
-IsolatedAgentSelfDefence) don't produce EvaluationInput/EvaluationResult at
-all. They expose a list of escalation records instead. This is a structural
-mirror of WP4's private `EscalationEvent`, same rationale as evaluator.py.
+Second contract, separate from evaluator.py: governance/security-style
+patterns don't produce EvaluationInput/EvaluationResult at all. They
+typically expose a list of escalation or audit records instead. This is a
+structural mirror of that shape, believed accurate as of the source
+reviewed on [DATE / commit ref once shared] — same rationale as
+evaluator.py.
 """
 
 from __future__ import annotations
@@ -13,15 +15,15 @@ from typing import Any, Mapping
 
 @dataclass(frozen=True)
 class EscalationEvent:
-    """Mirrors WP4's private `EscalationEvent` (governance patterns).
+    """Mirrors a governance pattern's escalation/audit record.
 
-    kind: e.g. "prompt_injection", "missing_tool_policy", "sandbox_ring_violation".
+    kind: e.g. "prompt_injection", "missing_policy", "boundary_violation".
     surface: where the check fired, e.g. "input", "tool:search:args", "output".
     reason: human-readable explanation.
-    severity: free-text severity label (WP4 currently uses "high"/"critical").
+    severity: free-text severity label.
     tool_name: set when the event is tool-specific, else None.
     timestamp: ISO 8601 string.
-    metadata: kind-specific extra fields (e.g. confidence, injection_type).
+    metadata: kind-specific extra fields (e.g. confidence, detection type).
     """
 
     kind: str
