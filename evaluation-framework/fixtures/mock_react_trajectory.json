@@ -1,0 +1,37 @@
+{
+  "_comment": "Mock shape of ReactAgent.run()'s return value: {messages, structured_response}. Hand-built to match the fields FaithfulnessEvaluator and LogCompletenessEvaluator read, per ReactAgent's actual message/tool-call structure.",
+  "input": "What is the current weather in Groningen, and should I bring an umbrella?",
+  "messages": [
+    {"type": "human", "content": "location: Groningen"},
+    {
+      "type": "ai",
+      "content": "I'll check the weather for Groningen.",
+      "tool_calls": [
+        {"id": "call_1", "name": "get_weather", "args": {"location": "Groningen"}}
+      ]
+    },
+    {
+      "type": "tool",
+      "tool_call_id": "call_1",
+      "name": "get_weather",
+      "content": "Groningen: 14C, 80% chance of rain"
+    },
+    {
+      "type": "ai",
+      "content": "Based on the forecast, it's 14C with an 80% chance of rain.",
+      "tool_calls": [
+        {"id": "call_2", "name": "finish_task", "args": {"summary": "14C, 80% rain chance, bring an umbrella", "bring_umbrella": true}}
+      ]
+    },
+    {
+      "type": "tool",
+      "tool_call_id": "call_2",
+      "name": "finish_task",
+      "content": "Task completed. Here is your structured response."
+    }
+  ],
+  "structured_response": {
+    "summary": "14C, 80% rain chance, bring an umbrella",
+    "bring_umbrella": true
+  }
+}

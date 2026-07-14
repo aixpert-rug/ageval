@@ -1,0 +1,24 @@
+{
+  "_comment": "Mock shape of ReflexionAgent's accumulated `reflections` state after a multi-trial run. Matches ReflexionTrial fields from _reflect(): trial_num, reflection, eval_result, trajectory_summary. trial_scores below is what ConsistencyEvaluator.evaluate_trials() expects, extracted from each trial's eval_result.",
+  "reflections": [
+    {
+      "trial_num": 1,
+      "trajectory_summary": "Searched for the API docs, called the wrong endpoint, task failed.",
+      "reflection": "I should check the docs' 'Endpoints' section before guessing the URL pattern.",
+      "eval_result": {"score": 0.2, "explanation": "Wrong endpoint called, task not completed.", "is_success": false}
+    },
+    {
+      "trial_num": 2,
+      "trajectory_summary": "Checked docs, found the correct endpoint, but missed a required query param.",
+      "reflection": "The docs show 'region' is required, not optional. Include it next time.",
+      "eval_result": {"score": 0.6, "explanation": "Correct endpoint, missing required parameter.", "is_success": false}
+    },
+    {
+      "trial_num": 3,
+      "trajectory_summary": "Checked docs, used correct endpoint and all required params, task succeeded.",
+      "reflection": "N/A - task succeeded.",
+      "eval_result": {"score": 0.95, "explanation": "All required parameters present, correct response returned.", "is_success": true}
+    }
+  ],
+  "trial_scores": [0.2, 0.6, 0.95]
+}

@@ -1,0 +1,34 @@
+# Level 3 — KPI specification template (WP7)
+# One instantiated copy of this per UC-specific KPI. `dimensions` and
+# `related_metric` are the two fields that replace the original template's
+# single "ISO trustworthiness characteristic" tag -- see KPI template slide.
+
+name: ""                 # Name of the KPI
+description: ""          # Brief description
+dimensions: []            # WP3 Level 1 dimension id(s), from dimensions/taxonomy.yaml
+related_metric: ""        # metric_id of the Level 2 metric this operationalises,
+                           # e.g. "faithfulness", "trial_consistency"
+formula: ""                # Mathematical formula
+unit: ""                    # Unit of measure
+range: ""                   # Logical upper & lower limits
+trend: ""                    # "higher_is_better" | "lower_is_better"
+timing: ""                    # "on_demand" | "periodic" | "real_time"
+user_category: ""              # Intended user category (from WP2)
+evaluation_component: ""        # Method of measuring the KPI
+use_case: ""                     # e.g. "UC1", "UC3", "UC5"
+
+# --- Worked example (Technical / UC1), matches the KPI examples slide ---
+# name: Reliability across diverse patient populations
+# description: >
+#   Accuracy of AI advice maintained across diverse patient populations
+#   vs. the main dataset.
+# dimensions: [accuracy, robustness]
+# related_metric: task_accuracy   # + robustness_accuracy, once implemented
+# formula: (Accuracy on diverse dataset) / (Accuracy on main dataset)
+# unit: ratio
+# range: "0.0-1.0+ (>=0.95 target)"
+# trend: higher_is_better
+# timing: periodic
+# user_category: clinician
+# evaluation_component: offline batch evaluation against held-out labeled set
+# use_case: UC1
