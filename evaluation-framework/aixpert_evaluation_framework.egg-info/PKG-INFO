@@ -1,0 +1,10 @@
+Metadata-Version: 2.4
+Name: aixpert-evaluation-framework
+Version: 0.1.0
+Summary: AIXPERT WP3 trustworthiness evaluation framework: dimensions, metrics/methods, and KPI templates.
+Requires-Python: >=3.11
+Requires-Dist: pyyaml>=6.0
+Provides-Extra: dev
+Requires-Dist: pytest>=8.0; extra == "dev"
+Provides-Extra: math
+Requires-Dist: sympy>=1.12; extra == "math"

@@ -1,0 +1,32 @@
+{
+  "input": "What is 17 plus 25?",
+  "messages": [
+    {
+      "type": "human",
+      "content": "query: What is 17 plus 25?"
+    },
+    {
+      "type": "ai",
+      "content": "",
+      "tool_calls": [
+        {
+          "name": "finish_task",
+          "args": {
+            "answer": "42"
+          },
+          "id": "gw2j3xqwb",
+          "type": "tool_call"
+        }
+      ]
+    },
+    {
+      "type": "tool",
+      "content": "Task completed. Here is your structured response.",
+      "tool_call_id": "gw2j3xqwb",
+      "name": "finish_task"
+    }
+  ],
+  "structured_response": {
+    "answer": "42"
+  }
+}

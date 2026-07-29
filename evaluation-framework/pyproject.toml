@@ -11,9 +11,15 @@ dependencies = [
 dev = [
     "pytest>=8.0",
 ]
+math = [
+    "sympy>=1.12",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[tool.setuptools.packages.find]
+include = ["contracts*", "metrics*"]
 
 [build-system]
 requires = ["setuptools>=68"]

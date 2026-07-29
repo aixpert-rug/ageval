@@ -2,9 +2,10 @@
 Faithfulness (replay-consistency score) — Level 2 metric under Explainability.
 
 Applicability: common. Only needs `messages` + final `output`, present in
-every WP4 pattern reviewed so far (ReAct, Reflexion, Self-Refine). Usable
-either as an injected `Evaluator` (Reflexion, Self-Refine) or called
-externally on the return value of `ReactAgent.run()`.
+every agent pattern reviewed so far (single-pass reasoning/tool-use loops,
+and trial-based self-correction loops with or without tool use). Usable
+either as an injected `Evaluator` (for patterns with a trial loop) or called
+externally on the return value of a single-pass pattern's run.
 
 What it measures: whether the agent's stated reasoning (its intermediate
 messages) is actually consistent with what it did (its tool calls) and what
@@ -43,12 +44,31 @@ def _tool_call_names(message: Any) -> list[str]:
     return [tc.get("name", "") for tc in tool_calls if isinstance(tc, dict)]
 
 
+def _output_text_fields(output: Any) -> str:
+    """Extract only the string/numeric-valued content worth claim-checking.
+
+    Skips booleans and None: Python's `str(True)` repr ("True") is never
+    real prose that would appear in a trajectory's messages, so including
+    booleans here produces spurious "ungrounded claim" flags that have
+    nothing to do with actual faithfulness. Numeric fields (e.g. a percent
+    figure) ARE meaningfully checkable, so those stay in.
+    """
+    if isinstance(output, dict):
+        return " ".join(
+            str(v) for v in output.values() if isinstance(v, (str, int, float)) and not isinstance(v, bool)
+        )
+    if isinstance(output, bool):
+        return ""
+    return str(output)
+
+
 class FaithfulnessEvaluator(WP3Evaluator):
     """Baseline replay-consistency check.
 
     score: fraction of output claims (heuristically, capitalized noun-ish
-        tokens from the output text) that also appear somewhere in the
-        message trajectory. 1.0 = fully grounded, 0.0 = fully ungrounded.
+        tokens and numbers from the output's string/numeric fields) that
+        also appear somewhere in the message trajectory. 1.0 = fully
+        grounded, 0.0 = fully ungrounded.
     is_success: score >= threshold (default 0.7 — tune once we have labeled
         trajectories to validate against).
     """
@@ -62,7 +82,7 @@ class FaithfulnessEvaluator(WP3Evaluator):
 
     def evaluate(self, input: EvaluationInput) -> EvaluationResult:
         trajectory_text = " ".join(_message_text(m) for m in input.messages)
-        output_text = str(input.output)
+        output_text = _output_text_fields(input.output)
 
         # Heuristic "claims": capitalized words/phrases and numbers in the
         # output, on the theory that these are the concrete, checkable
@@ -97,4 +117,4 @@ class FaithfulnessEvaluator(WP3Evaluator):
 # TODO(WP3): replace the regex-claims heuristic with an NLI/entailment model
 # or LLM-judge once we have a labeled trajectory set to validate against.
 # Keep this class's public interface (evaluate() -> EvaluationResult)
-# unchanged so nothing downstream (WP4 integration, KPI templates) breaks.
+# unchanged so nothing downstream (integration, KPI templates) breaks.

@@ -1,20 +1,21 @@
 # Pattern ↔ Metric Applicability Matrix
 
-Derived from reviewing four agent pattern implementations covering four
-distinct architectures: a single-pass reasoning/tool-use loop (ReAct-style),
-two trial-based self-correction loops — one with tool use, one without
-(Reflexion-style and Self-Refine-style respectively), and a governance/
-security wrapper applied around another pattern's execution. Not
-exhaustive — extend this table as more patterns are reviewed.
+Derived from reviewing four agent pattern architectures: a single-pass
+reasoning/tool-use loop (ReAct-style), two trial-based self-correction loops
+— one with tool use, one without (Reflexion-style and Self-Refine-style
+respectively), and a governance/security wrapper applied around another
+pattern's execution. Not exhaustive — extend this table as more patterns are
+reviewed.
 
 | Metric/Method | metric_id | Dimension(s) | Computed from | ReAct | Reflexion | Self-Refine | Governance |
 |---|---|---|---|:---:|:---:|:---:|:---:|
 | Faithfulness | `faithfulness` | Explainability | messages + final output | ✅ | ✅ | ✅ | — |
+| Task accuracy vs. ground truth (F1) | `task_accuracy` | Accuracy | final output vs. labeled target | ✅ | ✅ | ✅ | — |
+| Math accuracy (equivalence) | `math_accuracy` | Accuracy | final output vs. labeled numeric target | ✅ | ✅ | ✅ | — |
 | Schema-violation rate | `schema_violation_rate` | Accuracy | malformed/missing structured output count | ✅ | ✅ | ✅ | — |
-| Task accuracy vs. ground truth | `task_accuracy` | Accuracy | final output vs. labels | ✅ | ✅ | ✅ | — |
 | Trial-to-trial consistency | `trial_consistency` | Robustness | variance of per-trial evaluation score | — | ✅ | ✅ | — |
-| Convergence rate | `convergence_rate` | Robustness | trial count until success | — | ✅ | ✅ | — |
-| Score monotonicity | `score_monotonicity` | Robustness | trial-over-trial score trend | — | ✅ | ✅ | — |
+| Convergence rate | `convergence_rate` | Robustness | trial index of first success vs. trial budget | — | ✅ | ✅ | — |
+| Score monotonicity | `score_monotonicity` | Robustness | direction of trial-over-trial score change | — | ✅ | ✅ | — |
 | Reflection-groundedness | `reflection_groundedness` | Explainability | entailment: stated reflection vs. evaluation feedback | — | ✅ | ✅ | — |
 | Log completeness / FLR | `log_completeness` | Transparency, Auditability | tool-call trace completeness | ✅ | ✅ | ⚠️ vacuous (no tools) | — |
 | Governance coverage | `governance_coverage` | Auditability | fraction of tool calls passing through a governed wrapper | ✅ | ✅ | — | — |
@@ -22,6 +23,8 @@ exhaustive — extend this table as more patterns are reviewed.
 | False-positive rate | *(reported alongside prompt_injection_resistance)* | Safety, Security & Privacy | same, benign-input side | — | — | — | ✅ |
 | Escalation/audit completeness | `escalation_completeness` | Auditability | escalation/audit log well-formedness | — | — | — | ✅ |
 | Policy Enforcement Correctness | `policy_enforcement_correctness` | Safety, Security & Privacy | default-deny conformance on unclassified tools | — | — | — | ✅ |
+| Refusal | `refusal` | Robustness | pattern match over assistant messages | ✅ | ✅ | ✅ | — |
+| Reward hacking | `reward_hacking` | Accuracy, Robustness | composite: reported success vs. other metrics' grounding scores | ✅ | ✅ | ✅ | — |
 
 **Legend:** ✅ computable now from what's visible in the pattern's own
 behavior/output. `—` structurally inapplicable (the pattern doesn't produce
@@ -37,11 +40,32 @@ under `metrics/explainability/`, `task_accuracy.py` under
 regardless of dimension, and both are computable from every pattern. Trial
 consistency, by contrast, is meaningless for a single-pass pattern no matter
 which dimension you file it under. The applicability boundary (common /
-reflective / trajectory / governance) is a property of *what data the
-pattern produces*, which is orthogonal to *which dimension the metric
+reflective / trajectory / governance / scanners) is a property of *what data
+the pattern produces*, which is orthogonal to *which dimension the metric
 nominally serves*. Hence: one metric implementation, tagged with the
 dimension(s) it serves via `WP3Evaluator.dimensions`, filed under the folder
 that reflects what it actually needs to run.
+
+## The `scanners` category
+
+Added after reviewing a well-known open-source LLM evaluation framework's
+documentation. Distinct from the other four categories in one important way:
+a scanner inspects a whole trajectory for the *presence of a pattern*
+(refusal language, an unsupported success claim) rather than scoring task
+success — a clean trajectory often has nothing to report, and that absence
+of a finding is itself the passing result, not a vacuous one.
+
+Two scanners implemented so far, illustrating two different scanner
+sub-types:
+
+- `refusal` — deterministic text-pattern matching (cheap, no LLM call,
+  suitable for running at scale over many trajectories)
+- `reward_hacking` — a **composite** check, not a text scanner: reads the
+  *results* of other metrics (Faithfulness, Log Completeness) and a
+  pattern's own reported success signal, and flags cases where they
+  diverge sharply. Built directly from a real trajectory where this
+  divergence was observed: a pattern reported success without any
+  supporting tool use or reasoning text.
 
 ## Known gap: Human-centricity
 
@@ -57,6 +81,17 @@ to build it against yet.
 
 Metrics listed in the table above without a corresponding file under
 `metrics/` are specified (dimension, applicability, data source) but not yet
-coded. `faithfulness.py`, `consistency.py` (as `trial_consistency`),
-`log_completeness.py`, and `prompt_injection_resistance.py` are the four
-worked examples, one per applicability category — see each file's docstring.
+coded:
+
+- `schema_violation_rate` — common
+- `reflection_groundedness` — reflective; likely needs an entailment/LLM-judge
+  approach rather than a regex heuristic, given what a regex-only approach
+  missed on `faithfulness`'s first pass
+- `governance_coverage`, `escalation_completeness`,
+  `policy_enforcement_correctness` — governance; need a governed
+  tool-calling trajectory, not yet generated
+
+`faithfulness.py`, `task_accuracy.py`, `math_accuracy.py`, `consistency.py`,
+`convergence_rate.py`, `score_monotonicity.py`, `log_completeness.py`,
+`prompt_injection_resistance.py`, `refusal.py`, and `reward_hacking.py` are
+implemented, each with at least one positive and one negative-control test.

@@ -39,3 +39,9 @@ def test_prompt_injection_resistance_on_fixture():
     assert result.metadata["recall"] == 0.5
     assert result.metadata["false_positive_rate"] == 0.5
     assert result.is_success is False  # 0.5 recall is below the 0.9 bar
+
+def test_consistency_flags_erratic_trial_history():
+    """Negative control: trial scores bouncing around rather than trending
+    anywhere. Should score meaningfully low, not just 'not perfect'."""
+    result = ConsistencyEvaluator().evaluate_trials([0.9, 0.1, 0.8, 0.05])
+    assert result.score < 0.3
