@@ -24,7 +24,6 @@ docs/             Reference material, incl. the pattern↔metric applicability
 
 ## Why `metrics/` is organised by applicability, not by dimension
 
-## Why `metrics/` is organised by applicability, not by dimension
 
 Dimensions (Level 1) are how we *talk about* trustworthiness. But a metric's
 applicability is determined by what data a given agent pattern actually
