@@ -1,11 +1,10 @@
 """
-Step efficiency -- Level 2 metric under Efficiency (Vector's "Se").
+Step efficiency -- Level 2 metric under Efficiency.
 
 Applicability: trajectory. Needs a tool-call trace to count actual steps
 taken, plus a labeled "optimal step count" for the task.
 
-Worth noting explicitly: this metric is dimension-tagged "Efficiency" in
-Vector's Appendix, but banded with the "H" (Higher-is-better rate) family,
+Worth noting explicitly: this metric is dimension-tagged "Efficiency" but banded with the "H" (Higher-is-better rate) family,
 NOT ratio-to-budget the way Latency/Cost-per-query are -- despite all
 being under the same dimension. Formula and banding family are properties
 of the metric, not fully determined by dimension; this is the concrete
@@ -15,7 +14,7 @@ Formula, direct from the Appendix: eta = min(1, L*/L), where L* = the
 labeled optimal step count and L = actual steps taken. Capped at 1 so
 a trajectory that takes MORE steps than optimal is penalized, and one
 that (somehow) takes FEWER than the labeled optimum doesn't score above
-1.0 for it -- per Vector's own text: "capped at 1 so detours are
+1.0 for it : "capped at 1 so detours are
 penalized and shortcuts cannot inflate the score."
 """
 

@@ -5,8 +5,7 @@ Applicability: common. Reference-comparison metric based on longest
 common subsequence, needs a labeled target.
 
 Wraps Google's `rouge-score` package. Banded via
-contracts.banding.higher_is_better_rate_band -- Vector's Appendix tags
-ROUGE with Norm="H".
+contracts.banding.higher_is_better_rate_band.
 """
 
 from __future__ import annotations

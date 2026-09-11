@@ -1,5 +1,5 @@
 """
-Energy / carbon per query -- Level 2 metric under Efficiency (Vector's "En").
+Energy / carbon per query -- Level 2 metric under Efficiency .
 
 Applicability: efficiency.
 
@@ -17,8 +17,7 @@ impact-reporting schema.
 Note on scope: DIA's own primary framing is CUMULATIVE, MODEL-CARD-LEVEL
 footprint tracking across training runs and derivative models (fine-tunes,
 LoRAs, quantizations) -- a different scope from this metric, which is
-PER-QUERY INFERENCE footprint (Vector's Table 5 "Energy/carbon per
-query"). The two are related, not identical: this evaluator adopts DIA's
+PER-QUERY INFERENCE footprint. The two are related, not identical: this evaluator adopts DIA's
 recommended instrumentation tool and reports DIA-schema-aligned fields
 (energy_kwh, water_liters, hardware info) so results COULD feed into a
 DIA-style dashboard, but doesn't implement DIA's cumulative/lineage

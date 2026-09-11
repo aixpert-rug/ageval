@@ -13,8 +13,7 @@ Applicability: efficiency. Two ways to use this, both supported:
    genuinely usable on its own; someone still has to build the
    measurement half, and if that never happens the metric goes unused.
 
-The budget itself is NOT this evaluator's business to define -- per
-Vector's own document, "partner declares a use-case budget B". In this
+The budget itself is NOT this evaluator's business to define. In this
 repo's terms, that's exactly what the Level 3 KPI template's
 `Unit / Range` field is for -- the budget lives there, per UC, not
 hardcoded here.

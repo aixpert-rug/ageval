@@ -1,5 +1,5 @@
 """
-Shared 0-4 banding logic, per Vector Institute's D3.4 draft (Table 5,
+Shared 0-4 banding logic, per D3.4 draft (Table 5,
 "Normalization and banding policy"), cross-referenced against the
 Appendix descriptor tables' `Norm` column, which tags each individual
 metric with the specific family it actually uses.
@@ -28,7 +28,7 @@ from dataclasses import dataclass
 @dataclass(frozen=True)
 class Band:
     level: int  # 0-4
-    label: str  # "Unacceptable" .. "Excellent", per Vector's own band readings
+    label: str  # "Unacceptable" .. "Excellent"
 
 
 _BAND_LABELS = {0: "Unacceptable", 1: "Below expectations", 2: "Adequate", 3: "Good", 4: "Excellent"}
@@ -108,7 +108,7 @@ def lower_is_better_continuous_band(value: float, budget_ceiling: float) -> Band
 
     band = 4 - floor(4 * v / B), clamped to [0,4].
 
-    Vector's own documented ceilings, quoted directly: ECE 0.20, FID
+    Ceilings quoted directly: ECE 0.20, FID
     300, fairness gap 0.20, robustness degradation 0.30, judge bias
     0.15, consistency and test-retest variance 0.10. Not implemented as
     defaults here since this repo doesn't yet build any metric in this
@@ -189,12 +189,12 @@ def target_band_band(value: float, lo: float, hi: float) -> Band:
     4; band decreases linearly with distance from the nearest window
     edge.
 
-    NOTE: Vector's own text ("band decreases linearly with distance
+    NOTE: Our document ("band decreases linearly with distance
     from the nearest window edge") doesn't fully specify the span that
     linear decrease is measured over. This implementation treats the
     distance from the nearest edge out to the metric's natural boundary
     (0.0 or 1.0) as that span -- the most direct reading available, but
-    worth confirming against Vector's own reference implementation if
+    worth confirming against a reference implementation if
     one exists, since the Appendix doesn't spell out the exact formula
     beyond "linearly".
     """

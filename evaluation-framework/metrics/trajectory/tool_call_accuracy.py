@@ -4,8 +4,7 @@ Tool-call accuracy -- Level 2 metric under Accuracy.
 Applicability: trajectory. Needs a tool-call trace PLUS a labeled
 expectation of which tool(s) should have been called for the task.
 
-Banded via contracts.banding.higher_is_better_rate_band -- Vector's
-Appendix tags Tool-call accuracy with Norm="H" (the same
+Banded via contracts.banding.higher_is_better_rate_band (the same
 0.20/0.40/0.60/0.80 cuts used by F1, BLEU, etc.).
 
 This is the metric that would have caught the "17 + 25 = 42" bug more

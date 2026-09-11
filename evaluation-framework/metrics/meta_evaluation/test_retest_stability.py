@@ -1,15 +1,11 @@
 """
-Test-retest stability -- Level 2 meta-evaluation metric (Vector's "Tr"),
-under Robustness (Vector's own explicit dimension tag for this one
-metric -- unlike the rest of Table 4, which it tags Governance/
-Transparency/Fairness).
+Test-retest stability -- Level 2 meta-evaluation metric
+under Robustness.
 
 Applicability: meta_evaluation. Needs a metric's score on the SAME
 item, rerun multiple times -- variance across reruns. Mathematically
 IDENTICAL to metrics/aggregate/cross_run_consistency.py (same C-family
-formula, same budget=0.10 ceiling, which Vector's own Table 5 documents
-as shared between the two: "consistency and test-retest variance
-0.10"). Kept as a separate class because the two measure conceptually
+formula, same budget=0.10 ceiling). Kept as a separate class because the two measure conceptually
 different things despite the shared math: cross_run_consistency asks
 "is the AGENT's behaviour stable across repeated runs", this asks "is
 the EVALUATION PROCESS's score stable when rerun on the same item" --
@@ -25,7 +21,7 @@ import statistics
 from contracts.banding import lower_is_better_continuous_band
 from contracts.evaluator import EvaluationResult, WP3Evaluator
 
-_BUDGET_CEILING = 0.10  # Vector's own documented value, Table 5, shared with Consistency
+_BUDGET_CEILING = 0.10  
 
 
 class TestRetestStabilityEvaluator(WP3Evaluator):

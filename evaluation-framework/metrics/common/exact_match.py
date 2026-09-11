@@ -4,7 +4,7 @@ Exact Match -- Level 2 metric under Accuracy.
 Applicability: common. The strictest reference-comparison metric: does
 the predicted answer match the target exactly, after light, standard
 normalisation (lowercasing, whitespace collapsing, stripping punctuation
-Vector's own document lists this alongside F1 as the standard pairing --
+Our document lists this alongside F1 as the standard pairing --
 EM is precision-at-the-extreme (only a perfect match counts), F1 (already
 implemented in task_accuracy.py) is the more forgiving partial-credit
 version of the same comparison. Reporting both side by side is standard

@@ -11,8 +11,7 @@ appropriate for short free-text answers where exact wording can vary but
 the substance shouldn't (e.g. "14C, 80% rain" vs. "14 degrees, 80% chance
 of rain" should score well, not 0).
 
-Banded via contracts.banding.higher_is_better_rate_band -- Vector's
-Appendix descriptor table tags F1 with Norm="H" (Higher-is-better rate),
+Banded via contracts.banding.higher_is_better_rate_band -- (Higher-is-better rate),
 so this uses that family's actual 0.20/0.40/0.60/0.80 cuts rather than
 an arbitrary threshold.
 

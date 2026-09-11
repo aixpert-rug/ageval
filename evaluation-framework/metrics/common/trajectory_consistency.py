@@ -1,15 +1,8 @@
 """
-Trajectory Consistency (formerly "Faithfulness" in this repo) -- Level 2
-metric under Transparency & Explainability. Renamed to disambiguate from
-Vector's differently-defined Faithfulness (source-document entailment,
-not trajectory self-consistency) -- see repo history / WP3<->Vector
-correspondence for the disambiguation discussion.
+Trajectory Consistency -- Level 2
+metric under Transparency & Explainability. 
 
-Banded via contracts.banding.higher_is_better_rate_band -- Vector's
-Appendix tags their Faithfulness with Norm="H"; applied here too since
-ours is also an already-[0,1] rate with the same higher-is-better
-direction, even though the underlying construct differs.
-"""
+Banded via contracts.banding.higher_is_better_rate_band; 
 
 from __future__ import annotations
 

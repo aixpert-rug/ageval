@@ -1,5 +1,5 @@
 """
-Perplexity -- Level 2 metric under Accuracy (Vector's "PP").
+Perplexity -- Level 2 metric under Accuracy.
 
 Applicability: probabilistic -- a distinct category from all
 others. Needs token log-probabilities (contracts.logprobs.TokenLogProbs),
@@ -44,7 +44,7 @@ class PerplexityEvaluator(WP3Evaluator):
         Args:
             token_logprobs: the generation's per-token log-probabilities.
             baseline_perplexity: a reference/base model's perplexity on
-                the SAME corpus with the SAME tokenizer -- per Vector's
+                the SAME corpus with the SAME tokenizer -- per our
                 own normalisation requirement. Not this evaluator's job
                 to compute; supply it from a separate baseline run.
             ratio_budget_ceiling: budget ceiling for the ratio

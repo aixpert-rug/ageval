@@ -1,5 +1,5 @@
 """
-Throughput -- Level 2 metric under Efficiency (Vector's "Th").
+Throughput -- Level 2 metric under Efficiency .
 
 Applicability: efficiency. Same two-mode support as latency.py.
 measure_and_evaluate() times a call AND expects it to return a count of

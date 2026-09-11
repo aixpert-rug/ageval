@@ -11,16 +11,14 @@ SHIFTS due to the artefact alone, holding actual quality constant.
 
 Formula: mean absolute score shift across paired (with-artefact,
 without-artefact) observations. Banded via the "Lower-is-better
-continuous" family, budget ceiling = 0.15 -- Vector's own documented
-value for this specific metric, Table 5.
-"""
+continuous" family, budget ceiling = 0.15.
 
 from __future__ import annotations
 
 from contracts.banding import lower_is_better_continuous_band
 from contracts.evaluator import EvaluationResult, WP3Evaluator
 
-_JUDGE_BIAS_BUDGET_CEILING = 0.15  # Vector's own documented value, Table 5
+_JUDGE_BIAS_BUDGET_CEILING = 0.15  
 
 
 class JudgeBiasEvaluator(WP3Evaluator):

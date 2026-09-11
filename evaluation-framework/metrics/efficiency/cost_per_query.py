@@ -1,5 +1,5 @@
 """
-Cost per query -- Level 2 metric under Efficiency (Vector's "Cq").
+Cost per query -- Level 2 metric under Efficiency .
 
 Applicability: efficiency. Cost isn't something you MEASURE live the way
 latency or memory are -- it's CALCULATED from token counts and a price

@@ -1,5 +1,5 @@
 """
-Sub-goal / progress -- Level 2 metric under Accuracy (Vector's "Sg").
+Sub-goal / progress -- Level 2 metric under Accuracy.
 
 Applicability: common. Fractional-credit sibling of task_success.py:
 where TaskSuccessEvaluator asks one binary question ("was the goal

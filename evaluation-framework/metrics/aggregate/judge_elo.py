@@ -8,7 +8,7 @@ Generating the raw pairwise outcomes needs a live LLM-as-judge (or a
 human rater) -- deliberately out of scope here, same "someone else must
 supply the raw signal" pattern as task_success's oracle_fn or
 energy_carbon's power draw. What's implemented is the well-defined
-aggregation math Vector's own document specifies as a formula.
+aggregation math our document specifies as a formula.
 
 Formula (standard Elo rating system):
     E_i = 1 / (1 + 10^((R_j - R_i)/400))    -- expected score for i vs j
@@ -17,8 +17,7 @@ Verified against the standard textbook example before use: two
 equally-rated players (1500) with i beating j, K=32 -> winner's new
 rating 1516, loser's new rating 1484 exactly.
 
-IMPORTANT limitation, same root cause as Trajectory Optimality: Vector's
-own document tags this metric with the "Comparative" family 
+IMPORTANT limitation, same root cause as Trajectory Optimality: The document tags this metric with the "Comparative" family 
 quartile rank within a VERSIONED, SHARED CONSORTIUM POOL. This repo
 doesn't maintain that pool, so `evaluate_participant()` below can only
 report a rating NORMALISED RELATIVE TO THE OTHER PARTICIPANTS IN THE

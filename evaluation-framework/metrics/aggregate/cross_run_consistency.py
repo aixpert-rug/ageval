@@ -22,7 +22,7 @@ import statistics
 from contracts.banding import lower_is_better_continuous_band
 from contracts.evaluator import EvaluationResult, WP3Evaluator
 
-_CONSISTENCY_BUDGET_CEILING = 0.10  # Vector's own documented value, Table 5
+_CONSISTENCY_BUDGET_CEILING = 0.10 
 
 
 class CrossRunConsistencyEvaluator(WP3Evaluator):

@@ -5,8 +5,7 @@ Applicability: common. Reference-comparison, n-gram precision metric --
 needs a labeled target.
 
 Wraps `sacrebleu` rather than reimplementing (see module history for why).
-Banded via contracts.banding.higher_is_better_rate_band -- Vector's
-Appendix tags BLEU with Norm="H".
+Banded via contracts.banding.higher_is_better_rate_band 
 
 Note: BLEU is a corpus-level metric by design and noisy at the
 single-sentence level; sentence_bleu is used here to fit this repo's

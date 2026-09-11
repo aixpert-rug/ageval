@@ -95,7 +95,7 @@ specific reason it's blocked, lives in `docs/pattern_metric_matrix.md`
 - **Trajectory optimality, Judge win-rate/Elo's proper banding** --
   both need a live, versioned consortium score pool; Judge Elo's
   aggregation math is implemented and tested, just can't be banded the
-  way Vector's Comparative family intends without that shared pool.
+  way the Comparative family intends without that shared pool.
 - **Pass@k (code)** -- needs sandboxed code execution, a deliberate
   security-sensitive design decision not yet made.
 - **Bias/fairness gap** -- needs a real decision on what "protected
@@ -111,4 +111,4 @@ Several scorers and the `scanners` category are adapted from a
 well-known open-source LLM evaluation framework's public documentation
 (design patterns, not code). `metrics/efficiency/energy_carbon.py`
 wraps `codecarbon`, the instrumentation tool recommended by Vector
-Institute's own "Data and Impact Accounting" position paper.
+Institute's "Data and Impact Accounting" position paper.

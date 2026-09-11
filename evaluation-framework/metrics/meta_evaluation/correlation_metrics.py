@@ -1,6 +1,6 @@
 """
 Judge-human agreement AND Metric validity -- two Level 2 meta-evaluation
-metrics under Table 4 of Vector's Appendix. Grouped in one file because
+metrics. Grouped in one file because
 they are, per the Appendix, the IDENTICAL computation (Pearson
 correlation) applied to two different data sources -- not a coincidence
 worth hiding across two files that would otherwise duplicate the same
@@ -11,15 +11,7 @@ math:
   - Metric validity: correlation between any metric's scores and an
     independent criterion/ground-truth quality measure on the same items.
 
-Applicability: meta_evaluation -- a new category, evaluating the
-EVALUATION PROCESS, not an agent. Per our own taxonomy notes, this
-layer sits alongside the 10 spine dimensions, not as an 11th one --
-tagged here with Transparency & Explainability / Auditability per
-Vector's own dimension assignment (Judge-human agreement: Transparency;
-Metric validity: Governance, which on our side splits between
-Auditability and this cross-cutting layer -- Auditability is the
-closer fit since it's specifically about verifying the evaluation
-process is sound).
+Applicability: meta_evaluation
 
 Formula: Pearson correlation coefficient, via Python's stdlib
 `statistics.correlation` (available 3.10+; this repo requires 3.11+, so

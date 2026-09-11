@@ -6,8 +6,7 @@ matching with stemming and WordNet synonymy. Needs a labeled target.
 
 Wraps `nltk.translate.meteor_score`. See meteor_setup.py for the
 WordNet corpus dependency and its known failure modes. Banded via
-contracts.banding.higher_is_better_rate_band -- Vector's Appendix tags
-METEOR with Norm="H".
+contracts.banding.higher_is_better_rate_band .
 """
 
 from __future__ import annotations

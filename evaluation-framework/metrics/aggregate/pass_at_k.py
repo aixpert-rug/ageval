@@ -1,5 +1,5 @@
 """
-Pass@k (agent) -- Level 2 metric under Accuracy (Vector's "Pa").
+Pass@k (agent) -- Level 2 metric under Accuracy
 
 Applicability: aggregate. Needs, per problem, n = total sampled attempts
 and c = number of those attempts that succeeded, plus a chosen k (the
@@ -7,8 +7,7 @@ and c = number of those attempts that succeeded, plus a chosen k (the
 estimator across multiple problems.
 
 Formula (Chen et al. 2021, "Evaluating Large Language Models Trained on
-Code" -- the same estimator Vector's own document cites for its
-LLM-level Pass@k, Eq. 10 in their Appendix): the numerically stable
+Code" ): the numerically stable
 product form, avoiding large-factorial overflow:
 
     pass@k = 1 - prod_{i=0}^{k-1} (n-c-i)/(n-i),  if n-c >= k

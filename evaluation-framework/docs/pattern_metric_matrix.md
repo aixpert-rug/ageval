@@ -22,7 +22,7 @@ section and `harness/` for the integration layer that makes this work.
 | `aggregate` | Multiple independent runs, or a labeled case set | Any pattern; needs more than one trajectory |
 | `meta_evaluation` | Evaluates the evaluation process itself, not the agent | N/A -- cross-cutting, not pattern-specific |
 
-## Full metric inventory, mapped against Vector's periodic table
+## Full metric inventory, mapped against the periodic table
 
 Legend: [OK] = direct match to a periodic-table cell;
 [DIFF] = same name, deliberately different construct (both versions
@@ -56,7 +56,7 @@ reason noted.
 | Memory | [OK] (live-measurable; default measurer is Python-object-only, pluggable for GPU-aware measurement) | `memory_footprint` |
 | Energy/carbon | [OK] (wraps `codecarbon`, the tool DIA position paper recommends; includes water tracking) | `energy_carbon` |
 
-### Agentic, single- and multi-agent (Vector's 22)
+### Agentic, single- and multi-agent 
 
 | Metric | Status | Our metric_id |
 |---|---|---|

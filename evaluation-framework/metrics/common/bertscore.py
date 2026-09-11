@@ -6,8 +6,7 @@ See module history for the real, confirmed-by-testing dependency weight
 (torch + transformers + a HuggingFace model download) and its failure
 modes.
 
-Banded via contracts.banding.higher_is_better_rate_band -- Vector's
-Appendix tags BERTScore with Norm="H".
+Banded via contracts.banding.higher_is_better_rate_band
 
 VERIFIED: end-to-end scoring confirmed working on real infrastructure
 (distilbert-base-uncased downloaded and scored correctly, F1=0.940 for

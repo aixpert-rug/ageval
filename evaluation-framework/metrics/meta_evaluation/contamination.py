@@ -23,7 +23,7 @@ from __future__ import annotations
 from contracts.banding import lower_is_better_rate_band
 from contracts.evaluator import EvaluationResult, WP3Evaluator
 
-VETO_THRESHOLD = 0.40  # Vector's own documented veto trigger, Table 5
+VETO_THRESHOLD = 0.40 
 
 
 class ContaminationEvaluator(WP3Evaluator):
@@ -64,7 +64,7 @@ class ContaminationEvaluator(WP3Evaluator):
         explanation = f"Contamination rate {rate:.3f} -- band {band.level} ({band.label})."
         if is_vetoed:
             explanation += (
-                f" VETO TRIGGERED: rate >= {VETO_THRESHOLD} -- per Vector's veto rules, this benchmark's "
+                f" VETO TRIGGERED: rate >= {VETO_THRESHOLD} -- per veto rules, this benchmark's "
                 f"score should be WITHDRAWN and the construct it covers marked N/A for this submission, "
                 f"not just penalised. Propagate is_vetoed to whatever aggregates benchmark results."
             )

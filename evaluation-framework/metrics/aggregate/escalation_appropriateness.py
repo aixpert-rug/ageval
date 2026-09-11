@@ -8,7 +8,7 @@ was actually warranted. Determining "did_escalate" from a raw
 trajectory is domain-specific (similar to abstention/help-seeking
 detection) -- pushed to the caller, same reasoning as those metrics.
 
-Per the Appendix: Norm="H" (Higher-is-better rate). Vector's text
+Per the Appendix: Norm="H" (Higher-is-better rate) The text
 ("precision-recall of 'needs human'") doesn't specify how to combine
 the two into one banded score -- F1 (harmonic mean) is used here,
 consistent with how this repo already handles the same

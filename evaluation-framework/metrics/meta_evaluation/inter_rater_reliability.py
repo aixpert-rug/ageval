@@ -1,11 +1,9 @@
 """
-Inter-rater reliability -- Level 2 meta-evaluation metric (Vector's
-"Ir"), under Transparency & Explainability.
+Inter-rater reliability -- Level 2 meta-evaluation metric , under Transparency & Explainability.
 
 Applicability: meta_evaluation. Needs paired labels from exactly two
 raters on the same items. Implements Cohen's Kappa -- the standard,
-well-defined two-rater agreement statistic. Vector's own text says
-"kappa / alpha coefficient" and "data need: >= 2 raters"; Krippendorff's
+well-defined two-rater agreement statistic.  Krippendorff's
 alpha (the >2-rater, more general generalisation) is NOT implemented
 here -- flagged as a known, real gap, not silently substituted. Use this
 for the common two-rater case; a separate evaluator would be needed for

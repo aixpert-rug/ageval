@@ -17,8 +17,7 @@ e.g. the `detoxify` package (a maintained, trained-model Python
 toxicity classifier), an API-based moderation endpoint, or your own
 validated model.
 
-Banded via contracts.banding.lower_is_better_rate_band -- Vector's
-Appendix tags Toxicity with Norm="L" (fixed absolute cuts, not a
+Banded via contracts.banding.lower_is_better_rate_band  (fixed absolute cuts, not a
 declared budget).
 """
 
