@@ -11,6 +11,11 @@ appropriate for short free-text answers where exact wording can vary but
 the substance shouldn't (e.g. "14C, 80% rain" vs. "14 degrees, 80% chance
 of rain" should score well, not 0).
 
+Banded via contracts.banding.higher_is_better_rate_band -- Vector's
+Appendix descriptor table tags F1 with Norm="H" (Higher-is-better rate),
+so this uses that family's actual 0.20/0.40/0.60/0.80 cuts rather than
+an arbitrary threshold.
+
 For structured/numeric outputs where exact or mathematical equivalence is
 more appropriate than token overlap, see `math_accuracy.py` instead.
 """
@@ -20,6 +25,7 @@ from __future__ import annotations
 import re
 from typing import Any
 
+from contracts.banding import higher_is_better_rate_band
 from contracts.evaluator import EvaluationInput, EvaluationResult, WP3Evaluator
 
 _DEFAULT_STOP_WORDS = {
@@ -33,8 +39,6 @@ def _tokenize(text: str, stop_words: set[str] = frozenset()) -> list[str]:
 
 
 def _extract_answer_text(output: Any) -> str:
-    """Default answer extraction: join all string-valued output fields.
-    Pass a custom `answer_fn` to TaskAccuracyEvaluator for other shapes."""
     if isinstance(output, dict):
         return " ".join(str(v) for v in output.values() if isinstance(v, str))
     return str(output)
@@ -45,20 +49,15 @@ class TaskAccuracyEvaluator(WP3Evaluator):
 
     score: F1 = 2 * precision * recall / (precision + recall), over token
         sets. 1.0 = identical token content, 0.0 = no overlap at all.
-    is_success: score >= threshold (default 0.7).
+    is_success: band.level >= 2 ("Adequate" or better) per the
+        Higher-is-better rate family.
     """
 
     dimensions = ("Accuracy",)
     applicability = "common"
     metric_id = "task_accuracy"
 
-    def __init__(
-        self,
-        threshold: float = 0.7,
-        stop_words: set[str] = _DEFAULT_STOP_WORDS,
-        answer_fn=_extract_answer_text,
-    ):
-        self.threshold = threshold
+    def __init__(self, stop_words: set[str] = _DEFAULT_STOP_WORDS, answer_fn=_extract_answer_text):
         self.stop_words = stop_words
         self.answer_fn = answer_fn
 
@@ -74,7 +73,7 @@ class TaskAccuracyEvaluator(WP3Evaluator):
                 score=0.0,
                 explanation="Predicted answer produced no tokens (empty or unparseable output).",
                 is_success=False,
-                metadata={"precision": 0.0, "recall": 0.0},
+                metadata={"precision": 0.0, "recall": 0.0, "band_level": 0, "band_label": "Unacceptable"},
             )
 
         overlap = predicted_tokens & target_tokens
@@ -82,14 +81,16 @@ class TaskAccuracyEvaluator(WP3Evaluator):
         recall = len(overlap) / len(target_tokens)
         f1 = 2 * precision * recall / (precision + recall) if (precision + recall) else 0.0
 
+        band = higher_is_better_rate_band(f1)
+
         return EvaluationResult(
             score=f1,
             explanation=(
-                f"F1={f1:.3f} (precision={precision:.3f}, recall={recall:.3f}). "
-                f"Predicted tokens: {sorted(predicted_tokens)}. Target tokens: {sorted(target_tokens)}."
+                f"F1={f1:.3f} (precision={precision:.3f}, recall={recall:.3f}) "
+                f"-- band {band.level} ({band.label})."
             ),
-            is_success=f1 >= self.threshold,
-            metadata={"precision": precision, "recall": recall},
+            is_success=band.level >= 2,
+            metadata={"precision": precision, "recall": recall, "band_level": band.level, "band_label": band.label},
         )
 
     def evaluate(self, input: EvaluationInput) -> EvaluationResult:  # pragma: no cover

@@ -1,1 +1,46 @@
 
+# Scripts that import WP4's private package -- must never be committed
+generate_fixture.py
+generate_governed_fixture.py
+fixtures/generate_fixture.py
+fixtures/generate_governed_fixture.py
+
+# Local scratch trajectories from live testing (real_react_trajectory_001.json
+# is the curated baseline fixture and IS meant to be committed -- only
+# excluding later ad-hoc smoke-test outputs)
+real_react_trajectory_00[2-9].json
+
+# Python artifacts
+__pycache__/
+*.pyc
+.pytest_cache/
+# Scripts that import WP4's private package -- must never be committed
+generate_fixture.py
+generate_governed_fixture.py
+fixtures/generate_fixture.py
+fixtures/generate_governed_fixture.py
+
+# Local scratch trajectories from live testing (real_react_trajectory_001.json
+# is the curated baseline fixture and IS meant to be committed -- only
+# excluding later ad-hoc smoke-test outputs)
+real_react_trajectory_00[2-9].json
+
+# Python artifacts
+__pycache__/
+*.pyc
+.pytest_cache/
+# Scripts that import WP4's private package -- must never be committed
+generate_fixture.py
+generate_governed_fixture.py
+fixtures/generate_fixture.py
+fixtures/generate_governed_fixture.py
+
+# Local scratch trajectories from live testing (real_react_trajectory_001.json
+# is the curated baseline fixture and IS meant to be committed -- only
+# excluding later ad-hoc smoke-test outputs)
+real_react_trajectory_00[2-9].json
+
+# Python artifacts
+__pycache__/
+*.pyc
+.pytest_cache/

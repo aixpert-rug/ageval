@@ -9,7 +9,7 @@ result, not a vacuous one.
 
 Follows Inspect AI's `grep_scanner()`: deterministic keyword/pattern
 matching over assistant messages, not an LLM judge. This is a deliberately
-blunt baseline -- same caveat as FaithfulnessEvaluator's regex heuristic --
+blunt baseline -- same caveat as TrajectoryConsistencyEvaluator's regex heuristic --
 real refusals are often more implicit than any fixed phrase list catches,
 and the reverse (a phrase like "I can't be certain" being flagged as
 refusal when it's just epistemic hedging) is a live false-positive risk.

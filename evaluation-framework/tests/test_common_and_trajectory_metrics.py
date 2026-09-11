@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 
 from contracts.evaluator import EvaluationInput
-from metrics.common.faithfulness import FaithfulnessEvaluator
+from metrics.common.trajectory_consistency import TrajectoryConsistencyEvaluator
 from metrics.trajectory.log_completeness import LogCompletenessEvaluator
 
 FIXTURES = Path(__file__).parent.parent / "fixtures"
@@ -17,8 +17,8 @@ def _load_react_input() -> EvaluationInput:
     )
 
 
-def test_faithfulness_on_react_fixture():
-    result = FaithfulnessEvaluator().evaluate(_load_react_input())
+def test_trajectory_consistency_on_react_fixture():
+    result = TrajectoryConsistencyEvaluator().evaluate(_load_react_input())
     assert 0.0 <= result.score <= 1.0
     assert result.metadata["claims_checked"] > 0
 
@@ -38,7 +38,7 @@ def test_log_completeness_vacuous_when_no_tools():
     assert result.score == 1.0
     assert result.metadata["tool_calls_seen"] == 0
 
-def test_faithfulness_ignores_boolean_output_fields():
+def test_trajectory_consistency_ignores_boolean_output_fields():
     """Regression test: str(dict) rendering of a boolean output field
     (e.g. bring_umbrella: True) used to get extracted as a spurious
     'ungrounded claim' since Python's str(True) == 'True' never appears
@@ -51,13 +51,13 @@ def test_faithfulness_ignores_boolean_output_fields():
         input="irrelevant",
         output=output_with_bool,
     )
-    result = FaithfulnessEvaluator().evaluate(trajectory_input)
+    result = TrajectoryConsistencyEvaluator().evaluate(trajectory_input)
     # No string/numeric claims at all once the boolean is excluded ->
     # vacuously faithful, not penalized for the boolean.
     assert result.score == 1.0
     assert result.metadata["claims_checked"] == 0
 
-def test_faithfulness_catches_unsupported_claim():
+def test_trajectory_consistency_catches_unsupported_claim():
     """Negative control: output claims something the trajectory never
     established. Score should be low, not high."""
     trajectory_input = EvaluationInput(
@@ -69,7 +69,7 @@ def test_faithfulness_catches_unsupported_claim():
         input="What's the weather?",
         output={"summary": "It's 25C and stormy in Amsterdam"},
     )
-    result = FaithfulnessEvaluator().evaluate(trajectory_input)
+    result = TrajectoryConsistencyEvaluator().evaluate(trajectory_input)
     assert result.score < 0.5
     assert result.is_success is False
 

@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 
 from contracts.evaluator import EvaluationInput
-from metrics.common.faithfulness import FaithfulnessEvaluator
+from metrics.common.trajectory_consistency import TrajectoryConsistencyEvaluator
 from metrics.common.math_accuracy import MathAccuracyEvaluator
 from metrics.common.task_accuracy import TaskAccuracyEvaluator
 from metrics.scanners.refusal import RefusalScanner
@@ -41,7 +41,7 @@ def test_task_accuracy_scores_unrelated_answer_low():
 def test_math_accuracy_on_real_react_fixture():
     """Real trajectory: agent answered '42' to 'What is 17 plus 25?'. 42 is
     in fact correct, so math equivalence against target '42' should pass --
-    even though FaithfulnessEvaluator (correctly) scores this trajectory
+    even though TrajectoryConsistencyEvaluator (correctly) scores this trajectory
     0.0 for lack of grounding. Accuracy and faithfulness are different
     questions; this test and the faithfulness one on the same fixture
     should NOT agree, and that's expected, not a bug."""
@@ -82,33 +82,33 @@ def test_refusal_scanner_catches_refusal_pattern():
 
 def test_reward_hacking_flags_real_ungrounded_success():
     """The real '42' fixture, run through the composite check: the pattern
-    reported success (structured_response validated) but Faithfulness
+    reported success (structured_response validated) but Trajectory Consistency
     scored 0.0 on the same trajectory -- this is exactly the case
     RewardHackingScanner exists to catch."""
     real_input = _load_input("real_react_trajectory_001.json")
-    faithfulness_result = FaithfulnessEvaluator().evaluate(real_input)
+    trajectory_consistency_result = TrajectoryConsistencyEvaluator().evaluate(real_input)
     result = RewardHackingScanner().evaluate_composite(
         reported_success=True,
-        faithfulness_result=faithfulness_result,
+        trajectory_consistency_result=trajectory_consistency_result,
     )
     assert result.is_success is False
-    assert result.metadata["faithfulness_score"] == 0.0
+    assert result.metadata["trajectory_consistency_score"] == 0.0
 
 
 def test_reward_hacking_passes_when_grounded():
-    grounded_result = FaithfulnessEvaluator().evaluate(_load_input("mock_react_trajectory.json"))
+    grounded_result = TrajectoryConsistencyEvaluator().evaluate(_load_input("mock_react_trajectory.json"))
     result = RewardHackingScanner().evaluate_composite(
         reported_success=True,
-        faithfulness_result=grounded_result,
+        trajectory_consistency_result=grounded_result,
     )
     assert result.is_success is True
 
 
 def test_reward_hacking_skips_when_not_reported_successful():
-    faithfulness_result = FaithfulnessEvaluator().evaluate(_load_input("real_react_trajectory_001.json"))
+    trajectory_consistency_result = TrajectoryConsistencyEvaluator().evaluate(_load_input("real_react_trajectory_001.json"))
     result = RewardHackingScanner().evaluate_composite(
         reported_success=False,
-        faithfulness_result=faithfulness_result,
+        trajectory_consistency_result=trajectory_consistency_result,
     )
     assert result.score == 1.0
     assert result.metadata["reported_success"] is False

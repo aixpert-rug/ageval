@@ -1,25 +1,31 @@
 [project]
 name = "aixpert-evaluation-framework"
 version = "0.1.0"
-description = "AIXPERT WP3 trustworthiness evaluation framework: dimensions, metrics/methods, and KPI templates."
+description = "AIXPERT WP3 trustworthiness evaluation framework."
 requires-python = ">=3.11"
 dependencies = [
     "pyyaml>=6.0",
+    "sacrebleu>=2.4",
+    "rouge-score>=0.1",
+    "nltk>=3.9",
+    "bert-score>=0.3.13",
+    "codecarbon>=3.0",
 ]
 
 [project.optional-dependencies]
-dev = [
-    "pytest>=8.0",
-]
-math = [
-    "sympy>=1.12",
-]
+dev = ["pytest>=8.0"]
+math = ["sympy>=1.12"]
+
+[project.scripts]
+aixpert-setup-meteor = "metrics.common.meteor_setup:main"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+markers = ["integration: slow, network-dependent tests (opt-in via -m integration)"]
+addopts = "-m 'not integration'"
 
 [tool.setuptools.packages.find]
-include = ["contracts*", "metrics*"]
+include = ["contracts*", "metrics*", "harness*"]
 
 [build-system]
 requires = ["setuptools>=68"]

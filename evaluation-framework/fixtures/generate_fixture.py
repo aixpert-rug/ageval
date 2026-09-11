@@ -1,11 +1,3 @@
-"""
-Generate a real agent trajectory fixture by running a live agent pattern.
-
-NOT part of the public evaluation-framework package -- this imports the
-private agent framework directly. Run it locally; commit only the resulting
-JSON fixture, never this script, to the public repo.
-"""
-
 import argparse
 import json
 from pathlib import Path
@@ -18,6 +10,11 @@ from inobo.patterns.agent_orchestration.react_agent.pattern import ReactAgent
 def add(a: int, b: int) -> int:
     """Add two numbers."""
     return a + b
+
+
+def multiply(a: int, b: int) -> int:
+    """Multiply two numbers."""
+    return a * b
 
 
 def serialize_message(m) -> dict:
@@ -47,7 +44,7 @@ def main():
         input_schema={"query": str},
         output_schema={"answer": str},
         reasoning_llm_config=LLMConfig(model=args.model, model_provider=args.provider),
-        tools=[add],
+        tools=[add, multiply],
     )
 
     result = agent.run({"query": args.query})

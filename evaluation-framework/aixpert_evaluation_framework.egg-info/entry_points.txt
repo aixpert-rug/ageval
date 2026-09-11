@@ -1,0 +1,2 @@
+[console_scripts]
+aixpert-setup-meteor = metrics.common.meteor_setup:main

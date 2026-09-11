@@ -1,105 +1,96 @@
-# Level 1 — Trustworthiness Evaluation Taxonomy
+# Level 1 -- Trustworthiness Evaluation Taxonomy
 # 10 dimensions -> 15 ISO/IEC TS 5723 trustworthiness characteristics
-# Source: WP3 taxonomy slides. Keep in sync manually for now; consider
-# generating the slide content from this file once it stabilises.
 
 dimensions:
-  - id: explainability
-    name: Explainability
-    lead_tasks: [T3.1, T3.2]
-    definition: >
-      Given an audience, produces details or reasons that make its
-      functioning clear and easy to understand. (Herrera, 2025)
-    characteristics: [Transparency, Controllability]
-    tier: cross-cutting
-
-  - id: accountability
-    name: Accountability
-    lead_tasks: [T3.3, T3.5]
-    joint_ownership: true
-    definition: >
-      Roles, responsibilities, and oversight mechanisms are clearly
-      defined and enforced. (T3.3)
-    characteristics: [Accountability]
-    tier: characteristic-aligned
-
-  - id: transparency
-    name: Transparency
-    lead_tasks: [T3.3]
-    definition: >
-      Stakeholders can understand and explain what the agent does, why,
-      and how. (T3.3)
-    characteristics: [Transparency]
-    tier: characteristic-aligned
-
-  - id: autonomy
-    name: Autonomy
-    lead_tasks: [T3.3]
-    definition: >
-      The agent operates within sanctioned boundaries; human oversight
-      is preserved. (T3.3)
-    characteristics: [Controllability]
-    tier: characteristic-aligned
-
-  - id: robustness
-    name: Robustness
-    lead_tasks: [T3.4]
-    definition: >
-      Responds appropriately under perturbed inputs/environments;
-      consistent responses across repeated runs. (T3.4)
-    characteristics: [Robustness, Reliability, Resilience, Availability]
-    notes: >
-      Availability is dual-mapped: systems/uptime aspect (MTBF, MTTR)
-      lives here; user-facing accessibility aspect lives under
-      Human-centricity. See dimension `human_centricity` notes.
-    tier: characteristic-aligned
-
-  - id: ethical_legal
-    name: Ethical & Legal Aspects
-    lead_tasks: [T3.5]
-    definition: >
-      Ethical implications and legal frameworks (e.g. EU AI Act)
-      governing AI accountability, incl. bias and fairness.
-    characteristics: [Accountability, Safety, Privacy]
-    tier: cross-cutting
-
   - id: accuracy
     name: Accuracy
-    lead_tasks: [T3.1, T3.2]
     definition: >
       Closeness of results, computations, or estimates to the true or
       accepted values. (ISO, 2022)
     characteristics: [Accuracy, Quality, Integrity]
-    tier: characteristic-aligned
 
-  - id: human_centricity
-    name: Human-centricity
-    lead_tasks: [T3.1, T3.2]
+  - id: robustness
+    name: Robustness
     definition: >
-      User trust and satisfaction, but also controllability, usability,
-      and human agency.
-    characteristics: [Usability, Controllability, Availability]
+      Responds appropriately under perturbed inputs/environments;
+      consistent responses across repeated runs.
+    characteristics: [Robustness, Reliability, Resilience, Availability]
     notes: >
-      Availability here = accessibility/reachability on demand from the
-      user's side, distinct from the uptime/MTBF aspect under Robustness.
-    tier: characteristic-aligned
+      Availability is dual-mapped: systems/uptime aspect (MTBF, MTTR)
+      lives here; user-facing accessibility aspect lives under
+      Human-centricity.
 
   - id: safety_security_privacy
     name: Safety, Security & Privacy
-    lead_tasks: [T3.4, T3.5]
-    joint_ownership: true
     definition: >
       Resists harm to life/health/property/environment & unauthorized
-      acts; protects private affairs. Incl. jailbreak/prompt-injection
-      resistance. (ISO, 2022 / T3.4)
+      acts; protects private affairs. Includes jailbreak/prompt-injection
+      resistance. Covers privacy (freedom from intrusion into the
+      private life or affairs of an individual) and security
+      (resistance to intentional, unauthorized acts designed to cause
+      harm or damage).
     characteristics: [Safety, Security, Privacy]
-    tier: characteristic-aligned
+
+  - id: fairness_ethical_legal
+    name: Fairness, Ethical & Legal Aspects
+    definition: >
+      Ethical implications and legal frameworks (e.g. EU AI Act)
+      governing AI accountability, incl. bias and fairness across
+      groups and contexts.
+    characteristics: [Accountability, Safety, Privacy]
+
+  - id: transparency_explainability
+    name: Transparency & Explainability
+    definition: >
+      Given an audience, produces details or reasons that make its
+      functioning clear and easy to understand (Herrera, 2025) --
+      Explainability -- combined with the open, comprehensive,
+      accessible, clear presentation of information -- Transparency.
+    characteristics: [Transparency, Controllability]
+
+  - id: accountability
+    name: Accountability
+    definition: >
+      Roles, responsibilities, and oversight mechanisms are clearly
+      defined and enforced - whether oversight is defined, distinct
+      from Autonomy's "is it followed".
+    characteristics: [Accountability]
+
+  - id: autonomy
+    name: Autonomy
+    definition: >
+      The agent operates within sanctioned boundaries; human oversight
+      is preserved. Includes whether the oversight mechanism itself is
+      present and working (interruptibility, override success,
+      confirmation-gating).
+    characteristics: [Controllability]
 
   - id: auditability
     name: Auditability / Verifiability
-    lead_tasks: [all]
     definition: >
-      Ability to meet stakeholders' expectations verifiably; underpinned
-      by authenticity — the system is what it claims to be.
+      Ability to meet stakeholders' expectations in a way that can be
+      verified; underpinned by authenticity -- the system is what it
+      claims to be. Covers documentation, provenance, and incident
+      logs.
     characteristics: [Accountability, Transparency, Authenticity]
-    tier: cross-cutting
+
+  - id: efficiency
+    name: Efficiency
+    definition: >
+      Compute, latency, and other resource costs relative to a
+      partner- or use-case-declared budget.
+    characteristics: []
+
+  - id: human_centricity
+    name: Human-centricity
+    definition: >
+      User trust and satisfaction, but also controllability, usability,
+      and human agency in interacting with the system.
+    characteristics: [Usability, Controllability, Availability]
+    notes: >
+      Availability here = accessibility/reachability on demand from the
+      user's side, distinct from the uptime/MTBF aspect under
+      Robustness. Metrics in this dimension are mostly survey/
+      human-subject-based (see metrics/human_centricity/), not
+      automated -- requires participant recruitment and, depending on
+      jurisdiction, ethics review.
