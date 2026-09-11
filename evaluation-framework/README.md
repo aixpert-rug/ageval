@@ -1,94 +1,114 @@
 # AIXPERT WP3 Evaluation Framework
 
-Public repository under the AIXPERT project, representing WP3's auditing and evaluation framework for agentic AI. 
-This repo holds **what is measured and how** — dimension
-definitions, metric/method specifications and implementations, and KPI
-templates. It does not hold WP4's agent implementations. 
-See `contracts/README.md` for more information.
+Public repository under `aixpert-eu`, sibling to the AIXPERT agentic patterns catalogue. This repo holds **what is measured and how** —
+dimension definitions, metric/method specifications and
+implementations, KPI templates, and the harness that connects them to a
+real agent run. It does **not** hold agent implementations.
+
+## Status: confirmed working end-to-end against a real, live agent
+
+This isn't just a metrics library tested in isolation. As of this
+release, the full pipeline has been run live: a real WP4 pattern
+(single-pass, ReAct-style, tool-using) executed for real against a live
+LLM provider, its output adapted directly into this framework's
+contract, and scored by ten metrics automatically selected from the
+registry below: all in one process, no manual data wrangling, no
+JSON round-trip required (though that path also works, and is useful on
+its own -- see `harness/`)
 
 ## Structure
+dimensions/ Level 1 -- the 10-dimension taxonomy, as data (not code)
+metrics/ Level 2 -- 47 metrics across 10 applicability categories
+contracts/ The interface boundary: shared data contracts,
+banding logic, and the metric registry (see below)
+harness/ The integration layer: adapts an agentic pattern's raw
+output into this framework's contract, and runs every
+applicable metric against it automatically
+kpi_templates/ Level 3 -- KPI spec template for WP7, UC-agnostic
+fixtures/ Mock and real agent trajectories
+tests/ Metric and harness unit tests -- 201 passing
+docs/ Reference material, incl. the pattern <-> metric
+applicability matrix and the full periodic-table cross-reference
 
-```
-dimensions/       Level 1 — the 10-dimension taxonomy, as data (not code)
-metrics/          Level 2 — metrics & methods, organised by APPLICABILITY,
-                  not by dimension (see docs/pattern_metric_matrix.md for why)
-contracts/        The interface boundary — Evaluator protocol,
-                  EvaluationInput/EvaluationResult shapes
-kpi_templates/    Level 3 — KPI spec template for WP7, UC-agnostic
-fixtures/         Mock agent trajectories, so metrics can be built and
-                  tested without a live agent
-tests/            Metric unit tests against the fixtures
-docs/             Reference material, incl. the pattern↔metric applicability
-                  matrix
-```
+## The actual integration story: how this gets used with an agent
 
-## Why `metrics/` is organised by applicability, not by dimension
+1. **A WP4 pattern runs**, producing a raw graph-state result (`messages`
+   + a validated `structured_response`, where the pattern produces one).
+2. **`harness/adapters.py`** converts that raw result into this
+   framework's `EvaluationInput` contract. This conversion is
+   deliberately thin -- the contract was designed from the start to be
+   tolerant of both live LangChain message objects and serialized JSON,
+   so almost no transformation is needed.
+3. **A `TaskDefinition`** (`contracts/task_definition.py`), if you have
+   one, supplies whatever gold labels specific metrics need (a target
+   answer, an expected tool call, an oracle function). Not required --
+   metrics needing labels you don't have are skipped, not errored.
+4. **`harness/evaluate_trajectory.py`** looks up every metric in the
+   registry that can run from a single trajectory, checks what each one
+   needs against your `TaskDefinition`, and runs everything it can. One
+   metric raising doesn't kill the rest of the report.
 
+Confirmed working for the single-pass ReAct-style pattern reviewed so
+far. A trial-based self-correction pattern's *final* trajectory is
+expected to work identically (same response-extraction mechanism,
+confirmed by reading its source), though not yet run live end-to-end;
+its trial-by-trial dynamics need a separate resolution (see Known Gaps).
+A retrieve-then-generate pattern's compatibility is unconfirmed -- see
+`harness/adapters.py`'s docstring for the specific open question.
 
-Dimensions (Level 1) are how we *talk about* trustworthiness. But a metric's
-applicability is determined by what data a given agent pattern actually
-produces, not which dimension it happens to serve. `Faithfulness` (an
-Explainability metric) and `Task accuracy` (an Accuracy metric) are both
-computable from any pattern's final trajectory — but `Convergence rate`
-(also nominally about Explainability/Robustness) only exists for patterns
-with a trial loop. Organising by dimension would mean duplicating the same
-implementation across multiple dimension folders. Organising by applicability
-means one implementation, referenced from as many dimensions as apply.
+## Applicability categories (10)
 
-Five applicability categories, derived from reviewing several agent pattern
-architectures (a single-pass reasoning/tool-use loop, two trial-based
-self-correction loops — one with tool use, one without — and a governance/
-security wrapper), plus one category adapted from external evaluation
-tooling (see below):
+A metric's applicability is determined by what data it needs, not which
+dimension it serves -- see `docs/pattern_metric_matrix.md` for the full
+reasoning and the complete periodic-table cross-reference.
 
-| Folder | Requires | Applies to |
+| Category | Requires | Runnable by the harness automatically? |
 |---|---|---|
-| `metrics/common/` | `messages` + final `output` | Any pattern (single-pass or trial-based) |
-| `metrics/reflective/` | A trial loop (per-trial score/success signal) | Trial-based self-correction patterns only |
-| `metrics/trajectory/` | A tool-call trace | Tool-using patterns only |
-| `metrics/governance/` | Governance-pattern escalation/policy data | Governance wrappers — mechanism verification, not agent-behavior scoring |
-| `metrics/scanners/` | A full trajectory, checked for a pattern's presence rather than scored for task success | Any pattern; a scanner may report nothing at all on a clean trajectory |
+| `common` | `messages` + final `output`, optionally a gold label | Yes, where labels are supplied |
+| `trajectory` | A tool-call trace, optionally a gold label | Yes, where labels are supplied |
+| `scanners` | A full trajectory, no labels needed | Yes |
+| `reflective` | A trial loop within one run | No -- needs a second orchestration layer, not yet built |
+| `governance` | Governance-pattern escalation data | No |
+| `efficiency` | A pre-measured or live-measured external value | No -- different data source entirely |
+| `human_centricity` | Survey/participant responses | No |
+| `probabilistic` | Token log-probabilities | No |
+| `aggregate` | Multiple independent runs or a labeled case set | No |
+| `meta_evaluation` | Evaluates the evaluation process itself, not the agent | No |
 
-Each metric module declares which dimension(s) it serves via its `dimensions`
-attribute (see `metrics/common/faithfulness.py` for the pattern) — that's
-how Level 1 and Level 2 stay linked without forcing a folder-per-dimension
-structure.
+## Metric inventory: 47 metrics, 35 of 61 periodic table tools implemented
 
-## Implemented metrics
+Full per-metric breakdown, including every blocked cell and the
+specific reason it's blocked, lives in `docs/pattern_metric_matrix.md`
+-- not duplicated here since it changes as gaps close. Headline numbers:
 
-| metric_id | File | Category | Dimension(s) |
-|---|---|---|---|
-| `faithfulness` | `metrics/common/faithfulness.py` | common | Explainability |
-| `task_accuracy` | `metrics/common/task_accuracy.py` | common | Accuracy |
-| `math_accuracy` | `metrics/common/math_accuracy.py` | common | Accuracy |
-| `trial_consistency` | `metrics/reflective/consistency.py` | reflective | Robustness |
-| `convergence_rate` | `metrics/reflective/convergence_rate.py` | reflective | Robustness |
-| `score_monotonicity` | `metrics/reflective/score_monotonicity.py` | reflective | Robustness |
-| `log_completeness` | `metrics/trajectory/log_completeness.py` | trajectory | Transparency, Auditability |
-| `prompt_injection_resistance` | `metrics/governance/prompt_injection_resistance.py` | governance | Safety, Security & Privacy |
-| `refusal` | `metrics/scanners/refusal.py` | scanners | Robustness |
-| `reward_hacking` | `metrics/scanners/reward_hacking.py` | scanners | Accuracy, Robustness |
+- **35 of 61** direct matches to the periodic table.
 
-See `docs/pattern_metric_matrix.md` for the full applicability breakdown,
-including metrics that are specified but not yet implemented.
+## Known gaps -- specific reasons, not "not started yet"
 
-## Where the `scanners` category and some metric designs came from
+- **Multimodal** -- 0/10, no multimodal pattern reviewed in WP4's
+  pattern set yet.
+- **MAS-specific metrics** (7 of 61) -- no multi-agent
+  trajectory fixture or contract exists yet.
+- **Live-intervention metrics** (Interruptibility, Override success,
+  Deferral-on-uncertainty, Confirmation-gating) -- blocked on a WP4
+  harness hook that doesn't currently exist in any pattern reviewed.
+- **Trajectory optimality, Judge win-rate/Elo's proper banding** --
+  both need a live, versioned consortium score pool; Judge Elo's
+  aggregation math is implemented and tested, just can't be banded the
+  way Vector's Comparative family intends without that shared pool.
+- **Pass@k (code)** -- needs sandboxed code execution, a deliberate
+  security-sensitive design decision not yet made.
+- **Bias/fairness gap** -- needs a real decision on what "protected
+  groups" means for AIXPERT's specific use cases before implementation.
+- **Batch/aggregate orchestration** -- the harness currently closes the
+  loop for single-trajectory metrics only (~15 of the 47). Running many
+  trials and collecting results for `aggregate`/`reflective` metrics is
+  a real, well-scoped next piece, not yet built.
 
-Several scorers and the whole `scanners` category are adapted from a
+## Where some of this came from
+
+Several scorers and the `scanners` category are adapted from a
 well-known open-source LLM evaluation framework's public documentation
-(scorer/scanner design patterns: F1-based accuracy, mathematical-equivalence
-checking, deterministic pattern scanning, and transcript-wide behavioral
-scanning distinct from per-sample scoring). Adapted, not imported — each
-implementation here is written from scratch against our own contracts, not
-a dependency on that framework's package.
-
-## Status
-
-Structural scaffold + worked examples across all five categories, each with
-both positive and negative-control tests. Reflection-groundedness and the
-remaining governance-side metrics (governance coverage, escalation
-completeness, policy enforcement correctness) are specified but not yet
-implemented — see `docs/pattern_metric_matrix.md`. One real (non-mock) agent
-trajectory has been validated against; a second, forcing genuine tool use,
-is still needed to confirm the metrics also recognise *good* grounding on
-real output, not just bad.
+(design patterns, not code). `metrics/efficiency/energy_carbon.py`
+wraps `codecarbon`, the instrumentation tool recommended by Vector
+Institute's own "Data and Impact Accounting" position paper.

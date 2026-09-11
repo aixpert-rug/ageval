@@ -1,97 +1,122 @@
-# Pattern ↔ Metric Applicability Matrix
+# Pattern <-> Metric Applicability Matrix
 
-Derived from reviewing four agent pattern architectures: a single-pass
-reasoning/tool-use loop (ReAct-style), two trial-based self-correction loops
-— one with tool use, one without (Reflexion-style and Self-Refine-style
-respectively), and a governance/security wrapper applied around another
-pattern's execution. Not exhaustive — extend this table as more patterns are
-reviewed.
+As of this release, the ReAct-style pattern has been run live end to
+end -- real agent execution, real adapter, real metrics, in one process
+-- including a genuine tool-*selection* test (two tools available, the
+framework correctly evaluated whether the right one was chosen, not
+merely whether any tool was used). See the repo README's "Status"
+section and `harness/` for the integration layer that makes this work.
 
-| Metric/Method | metric_id | Dimension(s) | Computed from | ReAct | Reflexion | Self-Refine | Governance |
-|---|---|---|---|:---:|:---:|:---:|:---:|
-| Faithfulness | `faithfulness` | Explainability | messages + final output | ✅ | ✅ | ✅ | — |
-| Task accuracy vs. ground truth (F1) | `task_accuracy` | Accuracy | final output vs. labeled target | ✅ | ✅ | ✅ | — |
-| Math accuracy (equivalence) | `math_accuracy` | Accuracy | final output vs. labeled numeric target | ✅ | ✅ | ✅ | — |
-| Schema-violation rate | `schema_violation_rate` | Accuracy | malformed/missing structured output count | ✅ | ✅ | ✅ | — |
-| Trial-to-trial consistency | `trial_consistency` | Robustness | variance of per-trial evaluation score | — | ✅ | ✅ | — |
-| Convergence rate | `convergence_rate` | Robustness | trial index of first success vs. trial budget | — | ✅ | ✅ | — |
-| Score monotonicity | `score_monotonicity` | Robustness | direction of trial-over-trial score change | — | ✅ | ✅ | — |
-| Reflection-groundedness | `reflection_groundedness` | Explainability | entailment: stated reflection vs. evaluation feedback | — | ✅ | ✅ | — |
-| Log completeness / FLR | `log_completeness` | Transparency, Auditability | tool-call trace completeness | ✅ | ✅ | ⚠️ vacuous (no tools) | — |
-| Governance coverage | `governance_coverage` | Auditability | fraction of tool calls passing through a governed wrapper | ✅ | ✅ | — | — |
-| Prompt Injection Resistance | `prompt_injection_resistance` | Safety, Security & Privacy | escalation/audit events vs. labeled test set | — | — | — | ✅ |
-| False-positive rate | *(reported alongside prompt_injection_resistance)* | Safety, Security & Privacy | same, benign-input side | — | — | — | ✅ |
-| Escalation/audit completeness | `escalation_completeness` | Auditability | escalation/audit log well-formedness | — | — | — | ✅ |
-| Policy Enforcement Correctness | `policy_enforcement_correctness` | Safety, Security & Privacy | default-deny conformance on unclassified tools | — | — | — | ✅ |
-| Refusal | `refusal` | Robustness | pattern match over assistant messages | ✅ | ✅ | ✅ | — |
-| Reward hacking | `reward_hacking` | Accuracy, Robustness | composite: reported success vs. other metrics' grounding scores | ✅ | ✅ | ✅ | — |
+## The ten applicability categories
 
-**Legend:** ✅ computable now from what's visible in the pattern's own
-behavior/output. `—` structurally inapplicable (the pattern doesn't produce
-the needed data). `⚠️` technically computable but the result carries no
-signal (documented at the point of use, not silently treated as a passing
-score).
+| Category | Requires | Applies to |
+|---|---|---|
+| `common` | `messages` + final `output` | Any pattern (single-pass or trial-based) |
+| `reflective` | A trial loop within ONE run | Trial-based self-correction patterns only |
+| `trajectory` | A tool-call trace | Tool-using patterns only |
+| `governance` | Governance-pattern escalation data (`EscalationEvent`) | Governance wrappers specifically |
+| `scanners` | A full trajectory, checked for a pattern's presence | Any pattern; may report nothing on a clean trajectory |
+| `efficiency` | A pre-measured or live-measured external value + a declared budget | Any pattern; measurement is the caller's job (or the metric's own live measurer, e.g. `codecarbon`) |
+| `human_centricity` | Survey/participant responses | Any pattern's output, evaluated by humans |
+| `probabilistic` | Token log-probabilities | Any pattern whose provider exposes logprobs |
+| `aggregate` | Multiple independent runs, or a labeled case set | Any pattern; needs more than one trajectory |
+| `meta_evaluation` | Evaluates the evaluation process itself, not the agent | N/A -- cross-cutting, not pattern-specific |
 
-## Why this table drives `metrics/`'s folder structure, not `dimensions/`
+## Full metric inventory, mapped against Vector's periodic table
 
-Organising `metrics/` by dimension would mean e.g. `faithfulness.py` living
-under `metrics/explainability/`, `task_accuracy.py` under
-`metrics/accuracy/`, and so on — but both are computed identically
-regardless of dimension, and both are computable from every pattern. Trial
-consistency, by contrast, is meaningless for a single-pass pattern no matter
-which dimension you file it under. The applicability boundary (common /
-reflective / trajectory / governance / scanners) is a property of *what data
-the pattern produces*, which is orthogonal to *which dimension the metric
-nominally serves*. Hence: one metric implementation, tagged with the
-dimension(s) it serves via `WP3Evaluator.dimensions`, filed under the folder
-that reflects what it actually needs to run.
+Legend: [OK] = direct match to a periodic-table cell;
+[DIFF] = same name, deliberately different construct (both versions
+built where it made sense); -- = net-new, not on table;
+[BLOCKED reason] = specified but not buildable yet, with the specific
+reason noted.
 
-## The `scanners` category
+### LLM-level
 
-Added after reviewing a well-known open-source LLM evaluation framework's
-documentation. Distinct from the other four categories in one important way:
-a scanner inspects a whole trajectory for the *presence of a pattern*
-(refusal language, an unsupported success claim) rather than scoring task
-success — a clean trajectory often has nothing to report, and that absence
-of a finding is itself the passing result, not a vacuous one.
+| Metric | Status | Our metric_id |
+|---|---|---|
+| Exact Match | [OK] | `exact_match` |
+| F1 | [OK] | `task_accuracy` |
+| Pass@k (code) | [BLOCKED -- needs sandboxed code execution, a security-sensitive design decision not yet made] | -- |
+| BLEU | [OK] | `bleu` |
+| ROUGE | [OK] | `rouge_l` |
+| METEOR | [OK] | `meteor` |
+| BERTScore | [OK] | `bertscore` |
+| Judge win-rate / Elo | [OK] (aggregation math implemented + verified against the standard textbook example; proper consortium-quartile banding blocked -- see Trajectory optimality) | `judge_elo` |
+| Perplexity | [OK] | `perplexity` |
+| ECE (calibration) | [OK] | `ece` |
+| Faithfulness | [DIFF] | `trajectory_consistency` (self-consistency against the agent's own trajectory, not source-document entailment -- deliberately deferred pending a real source-grounding use case; a RAG-style pattern now supplies one, not yet built) |
+| Toxicity | [OK] (requires an explicit, externally-validated classifier -- deliberately ships no hand-rolled lexicon) | `toxicity` |
+| Refusal rate | [OK] | `refusal_rate` (aggregate, calibrated target-band rate) -- see also `refusal` (scanners, per-trajectory, a different question) |
+| Bias/fairness gap | [BLOCKED -- needs a real decision on what "protected groups" means for AIXPERT's specific use cases] | -- |
+| Abstention rate | [OK] | `abstention_rate` |
+| Escalation appropriateness | [OK] | `escalation_appropriateness` |
+| Latency | [OK] (live-measurable, not just pre-measured-value-only) | `latency` |
+| Throughput | [OK] | `throughput` |
+| Cost per query | [OK] (live-computable from token counts + pricing) | `cost_per_query` |
+| Memory | [OK] (live-measurable; default measurer is Python-object-only, pluggable for GPU-aware measurement) | `memory_footprint` |
+| Energy/carbon | [OK] (wraps `codecarbon`, the tool DIA position paper recommends; includes water tracking) | `energy_carbon` |
 
-Two scanners implemented so far, illustrating two different scanner
-sub-types:
+### Agentic, single- and multi-agent (Vector's 22)
 
-- `refusal` — deterministic text-pattern matching (cheap, no LLM call,
-  suitable for running at scale over many trajectories)
-- `reward_hacking` — a **composite** check, not a text scanner: reads the
-  *results* of other metrics (Faithfulness, Log Completeness) and a
-  pattern's own reported success signal, and flags cases where they
-  diverge sharply. Built directly from a real trajectory where this
-  divergence was observed: a pattern reported success without any
-  supporting tool use or reasoning text.
+| Metric | Status | Our metric_id |
+|---|---|---|
+| Task success rate | [OK] | `task_success` |
+| Sub-goal / progress | [OK] | `subgoal_progress` |
+| Pass@k (agent) | [OK] (unbiased estimator, verified against known reference values) | `pass_at_k_agent` |
+| Tool-call accuracy | [OK] | `tool_call_accuracy` |
+| Step efficiency | [OK] | `step_efficiency` |
+| Trajectory optimality | [BLOCKED -- Comparative family needs a live, versioned consortium score pool we don't maintain; the within-set relative-normalisation approach used for Judge Elo could plausibly adapt here, not yet attempted] | -- |
+| Error recovery rate | [OK] (data need is fault-injection trials; WP4 doesn't currently expose a fault-injection harness, but the metric itself doesn't need to wait for that) | `error_recovery_rate` |
+| Consistency | [OK] | `cross_run_consistency` -- see also `trial_consistency` (reflective, within one trial loop, a different question) |
+| Unsafe-action rate | [OK] --  implemented with veto logic | `unsafe_action_rate` |
+| Interruptibility | [BLOCKED -- live-intervention hook, none of the reviewed patterns expose one] | -- |
+| Override success | [BLOCKED -- same live-intervention gap] | -- |
+| Appropriate help-seeking | [OK] | `help_seeking` |
+| Deferral-on-uncertainty | [BLOCKED -- same live-intervention gap, needs per-step confidence elicitation specifically] | -- |
+| Confirmation-gating | [BLOCKED -- same live-intervention gap;] | -- |
+| Cost (tokens/$/latency) | [OK] -- covered by `latency`/`cost_per_query`, same ratio-to-budget shape whether applied to one call or a full trajectory | -- |
+| MAS-specific (7 metrics: comm. quality, delegation, consensus resolution, error-propagation containment, deadlock rate, cumulative unsafe-action rate, coordination efficiency) | [BLOCKED -- no multi-agent trajectory fixture or contract exists yet] | -- |
 
-## Known gap: Human-centricity
 
-None of the four patterns reviewed expose a human-in-the-loop event. If
-human-centricity metrics are wanted against these patterns, that requires
-the underlying agent framework to instrument a new event (e.g. a
-human-approval step before completion), not just a new evaluator against
-existing data. Flagged here rather than silently worked around — there is
-currently no `metrics/human_centricity/` category because there is nothing
-to build it against yet.
+All 10 Multimodal patters [BLOCKED -- no multimodal pattern reviewed in WP4's pattern set yet].
 
-## Not yet implemented
+### Meta-evaluation-- complete, 8/8
 
-Metrics listed in the table above without a corresponding file under
-`metrics/` are specified (dimension, applicability, data source) but not yet
-coded:
+| Metric | Status | Our metric_id |
+|---|---|---|
+| Judge-human agreement | [OK] (Pearson correlation) | `judge_human_agreement` |
+| Inter-rater reliability | [OK] (Cohen's Kappa; Krippendorff's alpha, the >2-rater generalisation, not implemented -- a known, disclosed gap) | `inter_rater_reliability` |
+| Metric validity | [OK] (same correlation math as Judge-human agreement, different data source) | `metric_validity` |
+| Discriminative power | [OK] (eta-squared, the standard ANOVA effect-size statistic) | `discriminative_power` |
+| Test-retest stability | [OK] (mathematically identical to `cross_run_consistency`, kept separate: this asks whether the EVALUATION PROCESS is stable on rerun, that asks whether the AGENT's behaviour is) | `test_retest_stability` |
+| Sensitivity | [OK] (accuracy on known-gap system pairs) | `sensitivity` |
+| Contamination / leakage | [OK] | `contamination` |
+| Judge bias | [OK] (mean absolute score shift from a controlled artefact) | `judge_bias` |
 
-- `schema_violation_rate` — common
-- `reflection_groundedness` — reflective; likely needs an entailment/LLM-judge
-  approach rather than a regex heuristic, given what a regex-only approach
-  missed on `faithfulness`'s first pass
-- `governance_coverage`, `escalation_completeness`,
-  `policy_enforcement_correctness` — governance; need a governed
-  tool-calling trajectory, not yet generated
+`math_accuracy`, `schema_violation_rate`, `convergence_rate`,
+`score_monotonicity`, `log_completeness`, `prompt_injection_resistance`,
+`reward_hacking`, `perceived_usability` (SUS), `cognitive_load`
+(NASA-TLX) -- extend the framework into territory the table doesn't
+cover: agentic self-correction dynamics, governance-mechanism
+verification, and Human-centricity, grounded in T3.1's own DoA text requiring
+human-centric explainability evaluation.
 
-`faithfulness.py`, `task_accuracy.py`, `math_accuracy.py`, `consistency.py`,
-`convergence_rate.py`, `score_monotonicity.py`, `log_completeness.py`,
-`prompt_injection_resistance.py`, `refusal.py`, and `reward_hacking.py` are
-implemented, each with at least one positive and one negative-control test.
+## The integration layer -- `contracts/registry.py` and `harness/`
+
+`contracts/registry.py` is a machine-readable catalogue of all 47
+metrics: applicability, dimensions, which method to call, and what
+extra data (if any) it needs beyond the trajectory itself. Exists
+because 47 metrics with genuinely different call signatures
+(`evaluate`, `evaluate_with_target`, `evaluate_with_oracle`,
+`evaluate_labeled_set`, `evaluate_trials`, ...) isn't discoverable by
+reading source files one at a time -- this is docs/pattern_metric_matrix.md,
+made queryable.
+
+`harness/evaluate_trajectory.py` uses that registry to automatically
+run every metric it has enough data for, given one captured trajectory
+and an optional `TaskDefinition` of gold labels. Currently covers the
+~15 metrics answerable from a single trajectory (`common`, `trajectory`,
+`scanners`); the `aggregate`/`reflective`/`efficiency`/
+`human_centricity`/`probabilistic`/`meta_evaluation` categories need a
+second orchestration layer -- running many trials and collecting
+results -- not yet built.
