@@ -11,7 +11,7 @@ SHIFTS due to the artefact alone, holding actual quality constant.
 
 Formula: mean absolute score shift across paired (with-artefact,
 without-artefact) observations. Banded via the "Lower-is-better
-continuous" family, budget ceiling = 0.15.
+continuous" family, budget ceiling = 0.15."""
 
 from __future__ import annotations
 

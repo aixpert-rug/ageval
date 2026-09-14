@@ -1,8 +1,8 @@
 """
-Trajectory Consistency -- Level 2
-metric under Transparency & Explainability. 
+Trajectory Consistency - Level 2 metric under Transparency & Explainability.
 
-Banded via contracts.banding.higher_is_better_rate_band; 
+Banded via contracts.banding.higher_is_better_rate_band;
+"""
 
 from __future__ import annotations
 
