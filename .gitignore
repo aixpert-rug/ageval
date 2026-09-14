@@ -44,3 +44,4 @@ real_react_trajectory_00[2-9].json
 __pycache__/
 *.pyc
 .pytest_cache/
+*.egg-info/
