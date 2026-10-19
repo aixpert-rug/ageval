@@ -22,8 +22,8 @@ def test_registry_has_no_duplicate_metric_ids():
 
 
 def test_registry_find_returns_correct_spec():
-    spec = find("trajectory_consistency")
-    assert spec.applicability == "common"
+    spec = find("log_completeness")
+    assert spec.applicability == "trajectory"
 
 
 def test_registry_find_raises_on_unknown_id():
@@ -40,7 +40,7 @@ def test_metrics_for_applicability_filters_correctly():
 def test_single_trajectory_metrics_excludes_batch_only_ones():
     single = single_trajectory_metrics()
     single_ids = {m.metric_id for m in single}
-    assert "trajectory_consistency" in single_ids
+    assert "log_completeness" in single_ids
     assert "cross_run_consistency" not in single_ids
     assert "latency" not in single_ids
 
@@ -49,14 +49,13 @@ def test_evaluate_trajectory_with_no_task_def_runs_only_label_free_metrics():
     trajectory = _load_input("real_react_trajectory_001.json")
     report = evaluate_trajectory(trajectory, task_def=None)
     ids = set(report.keys())
-    assert ids == {"trajectory_consistency", "log_completeness", "refusal"}
+    assert ids == {"log_completeness"}
 
 
 def test_evaluate_trajectory_no_labels_produces_expected_real_result():
     trajectory = _load_input("real_react_trajectory_001.json")
     report = evaluate_trajectory(trajectory, task_def=None)
-    assert report["trajectory_consistency"].score == 0.0
-    assert report["trajectory_consistency"].is_success is False
+    assert report["log_completeness"].is_success is True
 
 
 def _full_task_def() -> TaskDefinition:
@@ -84,7 +83,6 @@ def test_evaluate_trajectory_reveals_correct_but_ungrounded_pattern():
     report = evaluate_trajectory(trajectory, _full_task_def(), skip_metric_ids=("bertscore", "meteor"))
     assert report["task_success"].is_success is True
     assert report["task_accuracy"].is_success is True
-    assert report["trajectory_consistency"].is_success is False
     assert report["tool_call_accuracy"].is_success is False
 
 
@@ -98,13 +96,19 @@ def test_evaluate_trajectory_captures_exceptions_rather_than_raising():
 
 def test_evaluate_trajectory_skip_metric_ids_excludes_requested_metrics():
     trajectory = _load_input("real_react_trajectory_001.json")
-    report = evaluate_trajectory(trajectory, task_def=None, skip_metric_ids=("refusal",))
-    assert "refusal" not in report
-    assert "trajectory_consistency" in report
+    report = evaluate_trajectory(trajectory, task_def=None, skip_metric_ids=("log_completeness",))
+    assert "log_completeness" not in report
 
 
-def test_evaluate_trajectory_on_well_grounded_trajectory_passes_consistency():
+def test_evaluate_trajectory_on_well_grounded_trajectory_is_complete():
     trajectory = _load_input("mock_react_trajectory.json")
     report = evaluate_trajectory(trajectory, task_def=None)
-    assert report["trajectory_consistency"].is_success is True
     assert report["log_completeness"].score == 1.0
+
+
+def test_math_accuracy_runs_only_for_numeric_targets():
+    trajectory = _load_input("real_react_trajectory_001.json")
+    numeric = evaluate_trajectory(trajectory, TaskDefinition(task_id="t", input_query="q", target="42"), skip_metric_ids=("bertscore", "meteor"))
+    text = evaluate_trajectory(trajectory, TaskDefinition(task_id="t", input_query="q", target="Paris"), skip_metric_ids=("bertscore", "meteor"))
+    assert numeric["math_accuracy"].is_success is True
+    assert "math_accuracy" not in text

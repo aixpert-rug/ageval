@@ -47,3 +47,5 @@ class GovernanceTestCase:
     is_actually_malicious: bool
     #: Filled in after running the governed agent/tool on `input_text`.
     escalations: list[EscalationEvent] = field(default_factory=list)
+    #: Optional attack family (e.g. "direct", "indirect_tool_output", "obfuscated") for per-family recall.
+    category: str = ""

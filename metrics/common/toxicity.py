@@ -8,7 +8,7 @@ we don't have (and shouldn't invent) a validated toxicity signal
 ourselves.
 
 DELIBERATELY does not ship a hand-rolled toxic-word lexicon. A
-keyword/regex list (the pattern used for RefusalScanner) would be both
+keyword/regex list (the pattern used for the baseline refusal detector) would be both
 lower-quality than existing validated classifiers for this exact,
 well-studied problem, and inappropriate to embed directly in this
 codebase as example content. Requires an explicit

@@ -32,24 +32,54 @@ except ImportError:
     _SYMPY_AVAILABLE = False
 
 
+def _answer_text(output) -> str:
+    """Text of the answer: for a dict, every str/int/float field (a numeric field such as
+    {"answer": 42} must not be dropped); otherwise str(output)."""
+    if isinstance(output, dict):
+        return " ".join(str(v) for v in output.values() if isinstance(v, (str, int, float)) and not isinstance(v, bool))
+    return str(output)
+
+
 def _extract_number(text: str) -> str | None:
-    """Pull the last number-like substring out of free text, stripping
-    currency/percent/thousands-separator formatting -- same normalisation
-    Inspect's match(numeric=True) applies."""
-    cleaned = text.replace(",", "").replace("$", "").replace("€", "").replace("£", "").replace("%", "")
-    matches = re.findall(r"-?\d+(?:\.\d+)?(?:/\d+)?", cleaned)
+    """Last number-like token in free text, e.g. "50%", "1/2", "-3.5". Currency symbols and
+    thousands separators are removed; a trailing "%" is KEPT so the caller can interpret it.
+    A hyphen counts as a minus sign only when it is not glued to a preceding word or digit."""
+    cleaned = re.sub(r"\s+%", "%", text.replace(",", "").replace("$", "").replace("€", "").replace("£", ""))
+    matches = re.findall(r"(?<![\w.])-?\d+(?:\.\d+)?(?:/\d+)?%?|\d+(?:\.\d+)?(?:/\d+)?%?", cleaned)
     return matches[-1] if matches else None
+
+
+def is_numeric_target(task_def) -> bool:
+    """True when the task's target is a single number ("42", "1/2", "50%", "$1,000"). Used by the
+    registry so the harness runs math_accuracy only on numeric tasks."""
+    target = getattr(task_def, "target", None)
+    if target is None:
+        return False
+    cleaned = re.sub(r"\s+%", "%", str(target).replace(",", "").replace("$", "").replace("€", "").replace("£", "")).strip()
+    return re.fullmatch(r"-?\d+(?:\.\d+)?(?:/\d+)?%?", cleaned) is not None
+
+
+def _candidates(number: str) -> list[str]:
+    """"50%" may mean 50 or 0.5, so both readings are accepted."""
+    if number.endswith("%"):
+        base = number[:-1]
+        return [base, f"({base})/100"]
+    return [number]
 
 
 def _sympy_equivalent(predicted: str, target: str) -> bool:
     try:
-        return bool(sympy.simplify(parse_expr(predicted) - parse_expr(target)) == 0)
+        return abs(float(sympy.N(parse_expr(predicted) - parse_expr(target)))) < 1e-9
     except Exception:
         return False
 
 
 def _numeric_equivalent(predicted: str, target: str, tolerance: float = 1e-6) -> bool:
     def to_float(s: str) -> float | None:
+        s = s.strip()
+        if s.startswith("(") and ")/" in s:
+            inner, _, den = s[1:].partition(")/")
+            s = f"{inner}/{den}"
         if "/" in s:
             num, _, den = s.partition("/")
             try:
@@ -75,7 +105,7 @@ class MathAccuracyEvaluator(WP3Evaluator):
     metric_id = "math_accuracy"
 
     def evaluate_with_target(self, input: EvaluationInput, target: str) -> EvaluationResult:
-        output_text = str(input.output)
+        output_text = _answer_text(input.output)
         predicted = _extract_number(output_text)
         target_number = _extract_number(target) or target
 
@@ -87,12 +117,9 @@ class MathAccuracyEvaluator(WP3Evaluator):
                 metadata={"sympy_used": False},
             )
 
-        if _SYMPY_AVAILABLE:
-            is_equal = _sympy_equivalent(predicted, target_number)
-            method = "sympy"
-        else:
-            is_equal = _numeric_equivalent(predicted, target_number)
-            method = "numeric_fallback"
+        equivalent = _sympy_equivalent if _SYMPY_AVAILABLE else _numeric_equivalent
+        method = "sympy" if _SYMPY_AVAILABLE else "numeric_fallback"
+        is_equal = any(equivalent(p, t) for p in _candidates(predicted) for t in _candidates(target_number))
 
         return EvaluationResult(
             score=1.0 if is_equal else 0.0,

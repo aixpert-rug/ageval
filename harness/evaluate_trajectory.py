@@ -32,7 +32,9 @@ def _can_run(spec: MetricSpec, task_def: TaskDefinition | None) -> bool:
         return True
     if task_def is None:
         return False
-    return all(getattr(task_def, field, None) is not None for field in spec.requires)
+    if not all(getattr(task_def, field, None) is not None for field in spec.requires):
+        return False
+    return spec.applies_if is None or spec.applies_if(task_def)
 
 
 def _call_metric(spec: MetricSpec, trajectory: EvaluationInput, task_def: TaskDefinition | None) -> EvaluationResult:
