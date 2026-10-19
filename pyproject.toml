@@ -15,6 +15,7 @@ dependencies = [
 [project.optional-dependencies]
 dev = ["pytest>=8.0"]
 math = ["sympy>=1.12"]
+bias = ["unbias-plus"]
 
 [project.scripts]
 aixpert-setup-meteor = "metrics.common.meteor_setup:main"

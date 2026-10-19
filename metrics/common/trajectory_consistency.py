@@ -46,7 +46,7 @@ class TrajectoryConsistencyEvaluator(WP3Evaluator):
         claims = set(re.findall(r"\b[A-Z][a-zA-Z]{2,}\b|\b\d+(?:\.\d+)?\b", output_text))
 
         if not claims:
-            return EvaluationResult(score=1.0, explanation="No checkable claims extracted; vacuously consistent.", is_success=True, metadata={"claims_checked": 0, "band_level": 4})
+            return EvaluationResult(score=1.0, explanation="No checkable claims extracted; vacuously consistent.", is_success=True, metadata={"claims_checked": 0, "band_level": 4, "band_label": "Excellent"})
 
         grounded = {c for c in claims if c in trajectory_text}
         score = len(grounded) / len(claims)
