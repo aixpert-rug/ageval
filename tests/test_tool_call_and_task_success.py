@@ -5,7 +5,6 @@ import pytest
 
 from contracts.evaluator import EvaluationInput
 from metrics.common.task_success import TaskSuccessEvaluator
-from metrics.common.trajectory_consistency import TrajectoryConsistencyEvaluator
 from metrics.trajectory.log_completeness import LogCompletenessEvaluator
 from metrics.trajectory.tool_call_accuracy import ToolCallAccuracyEvaluator
 
@@ -24,7 +23,11 @@ def test_tool_call_accuracy_on_real_bypassed_tool_fixture():
     )
     assert result.score == 0.0
     assert result.is_success is False
-    assert result.metadata["actual_tool_names"] == ["finish_task"]
+    assert result.metadata["actual_tool_names"] == []   # finish_task is ignored by default
+    raw = ToolCallAccuracyEvaluator(ignore_tools=()).evaluate_with_expected_calls(
+        _load_input("real_react_trajectory_001.json"), expected_calls=[{"name": "add"}]
+    )
+    assert raw.metadata["actual_tool_names"] == ["finish_task"]
 
 
 def test_tool_call_accuracy_on_mock_fixture_correct_tool_used():
@@ -64,11 +67,9 @@ def test_task_success_on_real_fixture_is_correct_despite_ungrounded():
     assert result.score == 1.0
     assert result.is_success is True
 
-    consistency_result = TrajectoryConsistencyEvaluator().evaluate(_load_input("real_react_trajectory_001.json"))
     tool_result = ToolCallAccuracyEvaluator().evaluate_with_expected_calls(
         _load_input("real_react_trajectory_001.json"), expected_calls=[{"name": "add"}]
     )
-    assert consistency_result.score == 0.0
     assert tool_result.score == 0.0
 
 

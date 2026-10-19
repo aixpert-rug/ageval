@@ -1,7 +1,7 @@
 """
 The missing piece that connects a captured trajectory to the metrics
 that need gold labels to score it. Every metric that isn't fully
-automatic (trajectory_consistency, log_completeness, refusal all need
+automatic (log_completeness needs
 nothing beyond the trajectory itself) needs SOMETHING extra -- a target
 answer, an expected tool call, an oracle function. Right now every test
 in this repo hand-builds that extra data inline; in real use, it needs

@@ -18,7 +18,7 @@ its own -- see `harness/`)
 
 ## Structure
 dimensions/ Level 1 -- the 10-dimension taxonomy, as data (not code)
-metrics/ Level 2 -- 47 metrics across 10 applicability categories
+metrics/ Level 2 -- 44 metrics across 9 applicability categories
 contracts/ The interface boundary: shared data contracts,
 banding logic, and the metric registry (see below)
 harness/ The integration layer: adapts an agentic pattern's raw
@@ -66,7 +66,6 @@ reasoning and the complete periodic-table cross-reference.
 |---|---|---|
 | `common` | `messages` + final `output`, optionally a gold label | Yes, where labels are supplied |
 | `trajectory` | A tool-call trace, optionally a gold label | Yes, where labels are supplied |
-| `scanners` | A full trajectory, no labels needed | Yes |
 | `reflective` | A trial loop within one run | No -- needs a second orchestration layer, not yet built |
 | `governance` | Governance-pattern escalation data | No |
 | `efficiency` | A pre-measured or live-measured external value | No -- different data source entirely |
@@ -75,7 +74,7 @@ reasoning and the complete periodic-table cross-reference.
 | `aggregate` | Multiple independent runs or a labeled case set | No |
 | `meta_evaluation` | Evaluates the evaluation process itself, not the agent | No |
 
-## Metric inventory: 47 metrics, 35 of 61 periodic table tools implemented
+## Metric inventory: 44 metrics, 35 of 61 periodic table tools implemented
 
 Full per-metric breakdown, including every blocked cell and the
 specific reason it's blocked, lives in `docs/pattern_metric_matrix.md`
@@ -101,13 +100,13 @@ specific reason it's blocked, lives in `docs/pattern_metric_matrix.md`
 - **Bias/fairness gap** -- needs a real decision on what "protected
   groups" means for AIXPERT's specific use cases before implementation.
 - **Batch/aggregate orchestration** -- the harness currently closes the
-  loop for single-trajectory metrics only (~15 of the 47). Running many
+  loop for single-trajectory metrics only (13 of the 44). Running many
   trials and collecting results for `aggregate`/`reflective` metrics is
   a real, well-scoped next piece, not yet built.
 
 ## Where some of this came from
 
-Several scorers and the `scanners` category are adapted from a
+Several scorers are adapted from a
 well-known open-source LLM evaluation framework's public documentation
 (design patterns, not code). `metrics/efficiency/energy_carbon.py`
 wraps `codecarbon`, the instrumentation tool recommended by Vector

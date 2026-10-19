@@ -17,16 +17,11 @@ Implements the Raw TLX (unweighted-mean variant):
     reason. Pass explicit weights if the full weighted procedure's
     pairwise-comparison data is available.
 
-Direction note, easy to get backwards: NASA-TLX's "Performance" subscale
-is traditionally rated from 0 ("Perfect") to 100 ("Failure") -- i.e. on
-the ORIGINAL scale, a LOW performance rating means the participant felt
-they did well. That is the opposite direction from the other five
-subscales, where a low rating means low demand/effort/frustration (good).
-This implementation assumes the caller has already reverse-coded
-Performance onto the same "low = good" direction as the other subscales
-before passing it in (i.e. performance_rating = 100 - raw_perfect_to_failure_rating).
-This is flagged explicitly here because silently getting this backwards
-is the single most common NASA-TLX scoring error.
+Direction: all six subscales are collected on 0-100 scales where LOW IS GOOD, following the
+standard NASA-TLX questionnaire: the demand/effort/frustration scales are anchored "Very low" to
+"Very high", and Performance ("How successful were you in accomplishing what you were asked to
+do?") is anchored "Perfect" (0) to "Failure" (100). No scale is reversed by this implementation.
+Any questionnaire used for AIXPERT must use these anchors.
 """
 
 from __future__ import annotations
@@ -54,9 +49,8 @@ class CognitiveLoadEvaluator(WP3Evaluator):
     def evaluate_ratings(self, ratings: dict[str, float], weights: dict[str, float] | None = None) -> EvaluationResult:
         """
         Args:
-            ratings: dict with all six SUBSCALES as keys, each 0-100.
-                `performance` must already be reverse-coded onto the
-                "low = good" direction -- see module docstring.
+            ratings: dict with all six SUBSCALES as keys, each 0-100, low = good on every scale
+                (see module docstring).
             weights: optional, dict with the same six keys, summing to 1.0,
                 from the standard NASA-TLX pairwise-comparison procedure.
                 If omitted, uses the unweighted Raw TLX mean (Hart, 2006).

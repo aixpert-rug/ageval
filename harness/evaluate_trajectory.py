@@ -32,7 +32,9 @@ def _can_run(spec: MetricSpec, task_def: TaskDefinition | None) -> bool:
         return True
     if task_def is None:
         return False
-    return all(getattr(task_def, field, None) is not None for field in spec.requires)
+    if not all(getattr(task_def, field, None) is not None for field in spec.requires):
+        return False
+    return spec.applies_if is None or spec.applies_if(task_def)
 
 
 def _call_metric(spec: MetricSpec, trajectory: EvaluationInput, task_def: TaskDefinition | None) -> EvaluationResult:
@@ -88,11 +90,19 @@ def evaluate_trajectory(
 
     return report
 
-
 def print_report(report: dict[str, EvaluationResult | Exception]) -> None:
     for metric_id, result in report.items():
         if isinstance(result, Exception):
-            print(f"  {metric_id:30s} FAILED: {type(result).__name__}: {result}")
-        else:
-            status = "PASS" if result.is_success else "FAIL"
-            print(f"  {metric_id:30s} [{status}] score={result.score:.3f}  {result.explanation[:80]}")
+            print(f"  {metric_id:26s} FAILED: {type(result).__name__}: {result}")
+            continue
+
+        status = "PASS" if result.is_success else "FAIL"
+        band_level = result.metadata.get("band_level")
+        band_label = result.metadata.get("band_label")
+        # Not every metric bands its score -- exact_match, for instance, is a
+        # strict binary check with no graded family behind it. That's correct
+        # behavior for that metric, not a gap, so this is stated plainly
+        # rather than faked with a placeholder band.
+        band_str = f"band {band_level} ({band_label})" if band_level is not None else "no band (binary check)"
+        print(f"  {metric_id:26s} [{status}]  {band_str:22s}  score={result.score:.3f}")
+

@@ -12,8 +12,8 @@ metric's `_get()` helper throughout this repo, were already designed
 tolerant of BOTH shapes -- raw LangChain message objects (attribute
 access: `.content`, `.tool_calls`) from a live `.invoke()` call, and
 plain dicts (from a JSON fixture). Verified directly during development
-of this file: log_completeness, trajectory_consistency, and
-tool_call_accuracy all produce correct results against fake objects
+of this file: log_completeness and
+tool_call_accuracy both produce correct results against fake objects
 built to mimic real LangChain's actual shape -- containing MESSAGES are
 objects, but individual `tool_calls` entries are plain dicts even on a
 real message object (confirmed independently by ReflexionAgent's own

@@ -12,14 +12,12 @@ be inferred generically from output text the way EM/F1/BLEU can. The
 oracle_fn is where that task-specific logic lives; this evaluator just
 provides the consistent EvaluationResult wrapper around it.
 
-Deliberately distinct from Trajectory Consistency / Reward Hacking: task
-success asks "was the OUTCOME correct", those ask "was the outcome
-GROUNDED in the trajectory". The real "17+25=42" fixture makes the
-distinction concrete: task_success (oracle: answer == 42) scores this
-1.0 -- the outcome IS correct -- while trajectory_consistency scores it
-0.0 and reward_hacking flags it, because the correct answer wasn't
-actually grounded in any tool use or reasoning. All three results are
-correct simultaneously; they're answering different questions.
+Deliberately distinct from tool_call_accuracy: task success asks "was the OUTCOME
+correct", tool-call accuracy asks "did the agent use the tools it should have". The real
+"17+25=42" fixture makes the distinction concrete: task_success (oracle: answer == 42) scores
+this 1.0 -- the outcome IS correct -- while tool_call_accuracy (expected call: add) scores it
+0.0, because the correct answer was produced without using the tool. Both results are correct
+simultaneously; they answer different questions.
 """
 
 from __future__ import annotations

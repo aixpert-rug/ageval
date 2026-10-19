@@ -16,6 +16,7 @@ argument), which is exactly why this file must stay import-only.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from typing import Any, Callable
 
 from metrics.common.bertscore import BERTScoreEvaluator
 from metrics.common.bleu import BLEUEvaluator
@@ -24,10 +25,10 @@ from metrics.common.meteor import METEOREvaluator
 from metrics.common.rouge import ROUGEEvaluator
 from metrics.common.schema_violation_rate import SchemaViolationRateEvaluator
 from metrics.common.subgoal_progress import SubgoalProgressEvaluator
+from metrics.common.math_accuracy import MathAccuracyEvaluator, is_numeric_target
 from metrics.common.task_accuracy import TaskAccuracyEvaluator
 from metrics.common.task_success import TaskSuccessEvaluator
 from metrics.common.toxicity import ToxicityEvaluator
-from metrics.common.trajectory_consistency import TrajectoryConsistencyEvaluator
 
 from metrics.reflective.consistency import ConsistencyEvaluator
 from metrics.reflective.convergence_rate import ConvergenceRateEvaluator
@@ -39,8 +40,6 @@ from metrics.trajectory.tool_call_accuracy import ToolCallAccuracyEvaluator
 
 from metrics.governance.prompt_injection_resistance import PromptInjectionResistanceEvaluator
 
-from metrics.scanners.refusal import RefusalScanner
-from metrics.scanners.reward_hacking import RewardHackingScanner
 
 from metrics.efficiency.cost_per_query import CostPerQueryEvaluator
 from metrics.efficiency.energy_carbon import EnergyCarbonEvaluator
@@ -83,10 +82,11 @@ class MetricSpec:
     requires: tuple[str, ...] = field(default_factory=tuple)
     single_trajectory: bool = True
     notes: str = ""
+    #: optional extra applicability test on the TaskDefinition (e.g. numeric target only)
+    applies_if: Callable[[Any], bool] | None = None
 
 
 REGISTRY: list[MetricSpec] = [
-    MetricSpec("trajectory_consistency", TrajectoryConsistencyEvaluator, "common", ("Transparency & Explainability",), "evaluate"),
     MetricSpec("schema_violation_rate", SchemaViolationRateEvaluator, "common", ("Accuracy",), "evaluate_batch", single_trajectory=False, notes="Needs a BATCH of structured_response values, not one trajectory."),
     MetricSpec("task_accuracy", TaskAccuracyEvaluator, "common", ("Accuracy",), "evaluate_with_target", requires=("target",)),
     MetricSpec("exact_match", ExactMatchEvaluator, "common", ("Accuracy",), "evaluate_with_target", requires=("target",)),
@@ -94,7 +94,7 @@ REGISTRY: list[MetricSpec] = [
     MetricSpec("rouge_l", ROUGEEvaluator, "common", ("Accuracy",), "evaluate_with_target", requires=("target",)),
     MetricSpec("meteor", METEOREvaluator, "common", ("Accuracy",), "evaluate_with_target", requires=("target",), notes="Constructor raises if WordNet isn't installed -- see meteor_setup.py."),
     MetricSpec("bertscore", BERTScoreEvaluator, "common", ("Accuracy",), "evaluate_with_target", requires=("target",), notes="First call downloads a model -- see module docstring."),
-    MetricSpec("math_accuracy", None, "common", ("Accuracy",), "evaluate_with_target", requires=("target",), notes="Not import-verified in this registry build -- file wasn't touched this session, but is a real, previously-delivered metric."),
+    MetricSpec("math_accuracy", MathAccuracyEvaluator, "common", ("Accuracy",), "evaluate_with_target", requires=("target",), applies_if=is_numeric_target, notes="Runs only when the target is a single number."),
     MetricSpec("task_success", TaskSuccessEvaluator, "common", ("Accuracy",), "evaluate_with_oracle", requires=("oracle_fn",)),
     MetricSpec("subgoal_progress", SubgoalProgressEvaluator, "common", ("Accuracy",), "evaluate_with_subgoals", requires=("subgoal_checks",)),
     MetricSpec("toxicity", ToxicityEvaluator, "common", ("Safety, Security & Privacy",), "evaluate", requires=("toxicity_classifier",), notes="Classifier is a CONSTRUCTOR arg, not a call arg."),
@@ -103,8 +103,6 @@ REGISTRY: list[MetricSpec] = [
     MetricSpec("tool_call_accuracy", ToolCallAccuracyEvaluator, "trajectory", ("Accuracy",), "evaluate_with_expected_calls", requires=("expected_tool_calls",)),
     MetricSpec("step_efficiency", StepEfficiencyEvaluator, "trajectory", ("Efficiency",), "evaluate_with_optimal", requires=("optimal_steps",)),
 
-    MetricSpec("refusal", RefusalScanner, "scanners", ("Robustness",), "evaluate"),
-    MetricSpec("reward_hacking", RewardHackingScanner, "scanners", ("Accuracy", "Robustness"), "evaluate_composite", single_trajectory=False, notes="Needs OTHER metrics' results (trajectory_consistency, log_completeness) as input, not the raw trajectory -- run those first."),
 
     MetricSpec("trial_consistency", ConsistencyEvaluator, "reflective", ("Robustness",), "evaluate_trials", single_trajectory=False),
     MetricSpec("convergence_rate", ConvergenceRateEvaluator, "reflective", ("Robustness",), "evaluate_trials", single_trajectory=False),
