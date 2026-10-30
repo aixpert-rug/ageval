@@ -2,10 +2,15 @@
 Test-retest stability -- Level 2 meta-evaluation metric
 under Robustness.
 
-Applicability: meta_evaluation. Needs a metric's score on the SAME
-item, rerun multiple times -- variance across reruns. Mathematically
-IDENTICAL to metrics/aggregate/cross_run_consistency.py (same C-family
-formula, same budget=0.10 ceiling). Kept as a separate class because the two measure conceptually
+Applicability: meta_evaluation. Needs a metric's score on each item, rerun
+multiple times -- variance across reruns. Uses the SAME aggregation as
+metrics/aggregate/cross_run_consistency.py (metric updates, Oct 2026):
+per item, the sample variance of its rerun scores; the mean of those variances
+over all items; one C-family band with ceiling 0.10 (see
+metrics/aggregate/_run_variance.py). At least 2 reruns per item (5
+recommended); scores must be normalised to [0, 1] first.
+
+Kept as a separate class because the two measure conceptually
 different things despite the shared math: cross_run_consistency asks
 "is the AGENT's behaviour stable across repeated runs", this asks "is
 the EVALUATION PROCESS's score stable when rerun on the same item" --
@@ -16,12 +21,10 @@ abstention_rate.py.
 
 from __future__ import annotations
 
-import statistics
+from typing import Sequence
 
-from contracts.banding import lower_is_better_continuous_band
 from contracts.evaluator import EvaluationResult, WP3Evaluator
-
-_BUDGET_CEILING = 0.10  
+from metrics.aggregate._run_variance import describe, summarise_run_variances
 
 
 class TestRetestStabilityEvaluator(WP3Evaluator):
@@ -29,32 +32,33 @@ class TestRetestStabilityEvaluator(WP3Evaluator):
     applicability = "meta_evaluation"
     metric_id = "test_retest_stability"
 
-    def evaluate_reruns(self, scores: list[float]) -> EvaluationResult:
+    def evaluate_reruns(self, scores: Sequence[Sequence[float]], item_ids: Sequence | None = None) -> EvaluationResult:
         """
         Args:
-            scores: the same evaluation (same item, same metric) scored
-                multiple times independently -- e.g. rerunning an
-                LLM-judge on the identical input to check its own
-                consistency, not the agent's.
+            scores: one list per evaluated item, holding the same evaluation
+                (same item, same metric) scored multiple times independently
+                -- e.g. rerunning an LLM-judge on the identical input to
+                check its own consistency, not the agent's. At least 2
+                reruns per item, scores in [0, 1]. A flat list of numbers is
+                treated as the reruns of a single item.
+            item_ids: optional labels for listing the most unstable items.
         """
-        if len(scores) < 2:
-            return EvaluationResult(
-                score=1.0,
-                explanation="Fewer than 2 reruns; variance undefined, treated as vacuously stable.",
-                is_success=True,
-                metadata={"n_reruns": len(scores), "band_level": 4, "band_label": "Excellent"},
-            )
-
-        variance = statistics.variance(scores)
-        band = lower_is_better_continuous_band(variance, budget_ceiling=_BUDGET_CEILING)
-        score = band.level / 4.0
-
+        s = summarise_run_variances(scores, item_ids)
+        band = s["band"]
         return EvaluationResult(
-            score=score,
-            explanation=f"Score variance across {len(scores)} reruns: {variance:.4f} -- band {band.level} ({band.label}).",
+            score=band.level / 4.0,
+            explanation=describe(s, "items"),
             is_success=band.level >= 2,
-            metadata={"n_reruns": len(scores), "variance": variance, "budget_ceiling": _BUDGET_CEILING, "band_level": band.level, "band_label": band.label},
+            metadata={
+                "n_items": s["n_problems"],
+                "reruns_per_item": s["runs_per_problem"],
+                "mean_variance": s["mean_variance"], "per_item_variances": s["per_problem_variances"],
+                "n_unstable": s["n_unstable"], "unstable_share": s["unstable_share"],
+                "most_unstable": s["most_unstable"], "variance_ci_95": s["variance_ci_95"],
+                "below_recommended_runs": s["below_recommended_runs"],
+                "budget_ceiling": s["budget_ceiling"], "band_level": band.level, "band_label": band.label,
+            },
         )
 
     def evaluate(self, input):  # pragma: no cover
-        raise NotImplementedError("TestRetestStabilityEvaluator operates on scores from multiple reruns, not a single EvaluationInput. Call evaluate_reruns(...) instead.")
+        raise NotImplementedError("TestRetestStabilityEvaluator operates on scores from multiple reruns per item, not a single EvaluationInput. Call evaluate_reruns(...) instead.")

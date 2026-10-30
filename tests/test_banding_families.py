@@ -67,16 +67,34 @@ def test_c_band_rejects_invalid_inputs():
 
 
 def test_w_band_inside_window_is_band_4():
-    assert target_band_band(0.90, lo=0.85, hi=0.95).level == 4
-    assert target_band_band(0.85, lo=0.85, hi=0.95).level == 4
-    assert target_band_band(0.95, lo=0.85, hi=0.95).level == 4
+    assert target_band_band(0.20, lo=0.10, hi=0.30).level == 4
+    assert target_band_band(0.10, lo=0.10, hi=0.30).level == 4
+    assert target_band_band(0.30, lo=0.10, hi=0.30).level == 4
 
 
-def test_w_band_degrades_with_distance_from_window():
-    just_below = target_band_band(0.80, lo=0.85, hi=0.95)
-    far_below = target_band_band(0.10, lo=0.85, hi=0.95)
-    assert just_below.level > far_below.level
+def test_w_band_worked_examples():
+    # band = max(0, 4 - ceil(distance / 0.10)), window [0.10, 0.30]
+    assert target_band_band(0.35, lo=0.10, hi=0.30).level == 3
+    assert target_band_band(0.45, lo=0.10, hi=0.30).level == 2
+    assert target_band_band(0.75, lo=0.10, hi=0.30).level == 0
 
+
+def test_w_band_drops_one_band_per_step_on_both_sides():
+    lo, hi = 0.10, 0.30
+    assert [target_band_band(v, lo, hi).level for v in (0.31, 0.40, 0.50, 0.60, 0.70)] == [3, 3, 2, 1, 0]
+    assert [target_band_band(v, lo, hi).level for v in (0.09, 0.0)] == [3, 3]
+
+
+def test_w_band_exact_multiples_are_not_pushed_down_by_float_error():
+    # 0.40 - 0.30 == 0.10000000000000003 in floating point, still exactly one step.
+    assert target_band_band(0.40, lo=0.10, hi=0.30).level == 3
+    assert target_band_band(0.50, lo=0.10, hi=0.30).level == 2
+    assert target_band_band(0.60, lo=0.10, hi=0.30).level == 1
+    assert target_band_band(0.70, lo=0.10, hi=0.30).level == 0
+    # (0.4 - 0.1) / 0.10 == 3.0000000000000004 -- the guard must snap it to 3.
+    assert target_band_band(0.4, lo=0.0, hi=0.1).level == 1
+    assert target_band_band(0.1, lo=0.4, hi=0.5).level == 1
+    
 
 def test_w_band_rejects_invalid_window():
     with pytest.raises(ValueError):

@@ -18,7 +18,7 @@ its own -- see `harness/`)
 
 ## Structure
 dimensions/ Level 1 -- the 10-dimension taxonomy, as data (not code)
-metrics/ Level 2 -- 44 metrics across 9 applicability categories
+metrics/ Level 2 -- 46 metrics across 9 applicability categories
 contracts/ The interface boundary: shared data contracts,
 banding logic, and the metric registry (see below)
 harness/ The integration layer: adapts an agentic pattern's raw
@@ -74,7 +74,7 @@ reasoning and the complete periodic-table cross-reference.
 | `aggregate` | Multiple independent runs or a labeled case set | No |
 | `meta_evaluation` | Evaluates the evaluation process itself, not the agent | No |
 
-## Metric inventory: 44 metrics, 35 of 61 periodic table tools implemented
+## Metric inventory: 46 metrics, 35 of 61 periodic table tools implemented
 
 Full per-metric breakdown, including every blocked cell and the
 specific reason it's blocked, lives in `docs/pattern_metric_matrix.md`
@@ -100,7 +100,7 @@ specific reason it's blocked, lives in `docs/pattern_metric_matrix.md`
 - **Bias/fairness gap** -- needs a real decision on what "protected
   groups" means for AIXPERT's specific use cases before implementation.
 - **Batch/aggregate orchestration** -- the harness currently closes the
-  loop for single-trajectory metrics only (13 of the 44). Running many
+  loop for single-trajectory metrics only (13 of the 46). Running many
   trials and collecting results for `aggregate`/`reflective` metrics is
   a real, well-scoped next piece, not yet built.
 

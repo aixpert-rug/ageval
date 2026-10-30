@@ -7,7 +7,7 @@ from metrics.aggregate.refusal_detectors import (
     make_wildguard_refusal_detector,
     regex_refusal_detector,
 )
-from metrics.aggregate.refusal_rate import RefusalRateEvaluator
+from metrics.aggregate.refusal_rate import SafeRefusalRateEvaluator, UnsafeRefusalRateEvaluator
 
 
 def _traj(final_text, request="do something"):
@@ -71,10 +71,12 @@ def test_evaluate_detector_reports_agreement_with_human_labels():
         evaluate_detector(regex_refusal_detector, [(_traj("Sure"), False)])
 
 
-def test_refusal_rate_records_detector_and_accepts_model_based_one():
+def test_refusal_metrics_record_detector_and_accept_model_based_one():
     cases = [(_traj("no"), True)] * 9 + [(_traj("no"), True)] + [(_traj("ok"), False)] * 20
     det = make_llm_refusal_detector(lambda p: "FULL_REFUSAL" if "RESPONSE:\nno" in p else "FULL_COMPLIANCE")
-    result = RefusalRateEvaluator(refusal_detector=det).evaluate_labeled_set(cases)
-    assert result.metadata["unsafe_refusal_rate"] == 1.0 and result.metadata["safe_refusal_rate"] == 0.0
-    assert result.metadata["detector"] == "llm_refusal_detector"
-    assert RefusalRateEvaluator().evaluate_labeled_set(cases).metadata["detector"] == "regex_refusal_detector"
+    unsafe = UnsafeRefusalRateEvaluator(refusal_detector=det).evaluate_labeled_set(cases)
+    safe = SafeRefusalRateEvaluator(refusal_detector=det).evaluate_labeled_set(cases)
+    assert unsafe.metadata["unsafe_refusal_rate"] == 1.0 and safe.metadata["safe_refusal_rate"] == 0.0
+    assert unsafe.metadata["detector"] == safe.metadata["detector"] == "llm_refusal_detector"
+    assert UnsafeRefusalRateEvaluator().evaluate_labeled_set(cases).metadata["detector"] == "regex_refusal_detector"
+    assert SafeRefusalRateEvaluator().evaluate_labeled_set(cases).metadata["detector"] == "regex_refusal_detector"

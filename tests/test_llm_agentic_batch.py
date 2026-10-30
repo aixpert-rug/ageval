@@ -112,11 +112,12 @@ def test_help_seeking_within_default_window_passes():
     assert result.is_success is True
 
 
-def test_help_seeking_zero_rate_flagged():
+def test_help_seeking_zero_rate_is_below_band_4():
+    # One band lost per 0.10 outside [0.10, 0.30]: 0.0 is band 3 (flagged, not failing).
     cases = [_make_input("x")] * 10
     result = HelpSeekingEvaluator(help_seeking_detector=lambda inp: False).evaluate_labeled_set(cases)
     assert result.metadata["help_seeking_rate"] == 0.0
-    assert result.is_success is False
+    assert result.metadata["band_level"] == 3
 
 
 def test_help_seeking_requires_nonempty_cases():

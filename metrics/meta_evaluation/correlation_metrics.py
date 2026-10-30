@@ -18,19 +18,21 @@ Formula: Pearson correlation coefficient, via Python's stdlib
 no new dependency). Verified against a known perfectly-linear case
 (r=1.0 exactly) before use.
 
-Per Table 5, both use the "Higher-is-better rate" family -- but
-correlation coefficients range [-1, 1], not [0, 1], so this evaluator
-rescales r to [0,1] via (r+1)/2 before banding, since
-higher_is_better_rate_band expects a [0,1] input. This rescaling is
-noted explicitly in metadata (both the raw r and the rescaled value are
-reported) so nothing is silently lost.
+Per Table 5, both use the "Higher-is-better rate" family. Correlation
+coefficients range [-1, 1], so (metric updates, Oct 2026) the value
+banded is max(0, r): no (r+1)/2 rescaling, which moved r = 0 (no agreement) to
+0.5 = band 2 = pass. r <= 0.20 is band 0, and any negative r is band 0 too.
+The raw r is kept in metadata and negative values are flagged for review (they
+often signal an inverted scale rather than poor agreement). If either input is
+constant, Pearson r is undefined (statistics.correlation raises); that case
+returns band 0 with an explanatory message instead of raising.
 """
 
 from __future__ import annotations
 
 import statistics
 
-from contracts.banding import higher_is_better_rate_band
+from contracts.banding import agreement_coefficient_band
 from contracts.evaluator import EvaluationResult, WP3Evaluator
 
 
@@ -40,16 +42,33 @@ def _correlation_result(x: list[float], y: list[float], label: str) -> Evaluatio
     if len(x) < 2:
         raise ValueError("Correlation requires at least 2 paired observations.")
 
-    r = statistics.correlation(x, y)
-    rescaled = (r + 1) / 2
-    band = higher_is_better_rate_band(rescaled)
+    try:
+        r = statistics.correlation(x, y)
+    except statistics.StatisticsError:
+        # At least one input is constant, so Pearson r is undefined.
+        return EvaluationResult(
+            score=0.0,
+            explanation=f"{label}: Pearson r undefined because at least one input is constant -- band 0 (Unacceptable). REVIEW: check the scores.",
+            is_success=False,
+            metadata={
+                "pearson_r": None, "n_pairs": len(x), "review_flag": True, "degenerate": True,
+                "degenerate_reason": "constant input",
+                "band_level": 0, "band_label": "Unacceptable",
+            },
+        )
+
+    band = agreement_coefficient_band(r)
     score = band.level / 4.0
+    review_flag = r < 0
 
     return EvaluationResult(
         score=score,
-        explanation=f"{label}: Pearson r={r:.3f} (rescaled {rescaled:.3f}) -- band {band.level} ({band.label}).",
+        explanation=(
+            f"{label}: Pearson r={r:.3f} -- band {band.level} ({band.label})."
+            + (" REVIEW: negative r (worse than chance); check for an inverted scale." if review_flag else "")
+        ),
         is_success=band.level >= 2,
-        metadata={"pearson_r": r, "rescaled_0_1": rescaled, "n_pairs": len(x), "band_level": band.level, "band_label": band.label},
+        metadata={"pearson_r": r, "n_pairs": len(x), "review_flag": review_flag, "degenerate": False, "band_level": band.level, "band_label": band.label},
     )
 
 

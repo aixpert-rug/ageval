@@ -15,13 +15,19 @@ by each rater's own marginal label frequencies. Verified against a
 worked example before use: 10 items, 8/10 agreement, marginals giving
 p_e=0.5 -> kappa=0.6 exactly (a standard textbook "substantial
 agreement" result).
+
+Banding (metric updates, Oct 2026): H family on max(0, kappa), no
+(kappa+1)/2 rescaling, so chance-level agreement (kappa = 0) is band 0, not
+band 2. The cuts follow Landis & Koch (1977): below 0 poor and 0-0.20 slight
+(band 0), fair (1), moderate (2), substantial (3), almost perfect (4). The raw
+kappa is kept in metadata and negative values are flagged for review.
 """
 
 from __future__ import annotations
 
 from collections import Counter
 
-from contracts.banding import higher_is_better_rate_band
+from contracts.banding import agreement_coefficient_band
 from contracts.evaluator import EvaluationResult, WP3Evaluator
 
 
@@ -55,15 +61,25 @@ class InterRaterReliabilityEvaluator(WP3Evaluator):
         else:
             kappa = (po - pe) / (1 - pe)
 
-        rescaled = max(0.0, min(1.0, (kappa + 1) / 2))
-        band = higher_is_better_rate_band(rescaled)
+        band = agreement_coefficient_band(kappa)
         score = band.level / 4.0
+        # Kappa < 0 means agreement worse than chance; it often signals a setup
+        # error (inverted label or rating scale) rather than genuine disagreement.
+        review_flag = kappa < 0
+        degenerate_marginals = pe == 1.0
 
         return EvaluationResult(
             score=score,
-            explanation=f"Cohen's kappa={kappa:.3f} (po={po:.3f}, pe={pe:.3f}) -- band {band.level} ({band.label}).",
+            explanation=(
+                f"Cohen's kappa={kappa:.3f} (po={po:.3f}, pe={pe:.3f}) -- band {band.level} ({band.label})."
+                + (" REVIEW: negative kappa (worse than chance); check for an inverted label or rating scale." if review_flag else "")
+            ),
             is_success=band.level >= 2,
-            metadata={"kappa": kappa, "observed_agreement": po, "expected_agreement": pe, "n_items": n, "band_level": band.level, "band_label": band.label},
+            metadata={
+                "kappa": kappa, "observed_agreement": po, "expected_agreement": pe, "n_items": n,
+                "review_flag": review_flag, "degenerate_marginals": degenerate_marginals,
+                "band_level": band.level, "band_label": band.label,
+            },
         )
 
     def evaluate(self, input):  # pragma: no cover
