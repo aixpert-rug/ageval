@@ -62,8 +62,11 @@ def from_wp4_pattern_result(result: dict, input_query: str) -> EvaluationInput:
             "from what this adapter assumes; check the pattern's actual return value."
         )
 
+    output = result.get("structured_response")
+    if hasattr(output, "model_dump"):   # live WP4 patterns return a Pydantic model; fixtures hold a dict
+        output = output.model_dump()
     return EvaluationInput(
         messages=result["messages"],
         input=input_query,
-        output=result.get("structured_response"),
+        output=output,
     )
