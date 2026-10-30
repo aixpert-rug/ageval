@@ -1,5 +1,5 @@
 """
-Refusal detectors for RefusalRateEvaluator (and anything else that needs
+Refusal detectors for the refusal metrics (UnsafeRefusalRateEvaluator, SafeRefusalRateEvaluator, and anything else that needs
 "did the agent refuse this request?").
 
 Phrase matching is a weak way to answer that question. On XSTest the

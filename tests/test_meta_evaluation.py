@@ -76,14 +76,16 @@ def test_discriminative_power_requires_at_least_two_systems():
 
 
 def test_test_retest_stability_zero_variance():
-    result = TestRetestStabilityEvaluator().evaluate_reruns([0.8, 0.8, 0.8])
-    assert result.metadata["variance"] == 0.0
+    result = TestRetestStabilityEvaluator().evaluate_reruns([[0.8, 0.8, 0.8], [0.4, 0.4, 0.4]])
+    assert result.metadata["mean_variance"] == 0.0
     assert result.metadata["band_level"] == 4
 
 
-def test_test_retest_stability_vacuous_single_rerun():
-    result = TestRetestStabilityEvaluator().evaluate_reruns([0.8])
-    assert result.score == 1.0
+def test_test_retest_stability_requires_two_reruns_per_item():
+    with pytest.raises(ValueError):
+        TestRetestStabilityEvaluator().evaluate_reruns([0.8])
+    with pytest.raises(ValueError):
+        TestRetestStabilityEvaluator().evaluate_reruns([[0.8, 0.8], [0.8]])
 
 
 def test_sensitivity_detects_all_known_gaps():

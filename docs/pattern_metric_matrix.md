@@ -45,9 +45,9 @@ reason noted.
 | ECE (calibration) | [OK] | `ece` |
 | Faithfulness | [BLOCKED -- needs a real source-grounding use case (a RAG-style pattern now supplies one, not yet built); the earlier trajectory-only proxy `trajectory_consistency` was removed because it only measured repeated words] | -- |
 | Toxicity | [OK] (requires an explicit, externally-validated classifier -- deliberately ships no hand-rolled lexicon) | `toxicity` |
-| Refusal rate | [OK] | `refusal_rate` (aggregate, calibrated target-band rate). The per-trajectory detector is pluggable: a phrase-matching baseline, an LLM judge, or WildGuard -- see `metrics/aggregate/refusal_detectors.py` |
+| Refusal rate | [OK] (split into two metrics: refusal on unsafe prompts, higher is better, and over-refusal on safe prompts, lower is better) | `unsafe_refusal_rate` and `safe_refusal_rate` (aggregate, both fed by the same labeled set). The per-trajectory detector is pluggable: a phrase-matching baseline, an LLM judge, or WildGuard -- see `metrics/aggregate/refusal_detectors.py` |
 | Bias/fairness gap | [BLOCKED -- needs a real decision on what "protected groups" means for AIXPERT's specific use cases] | -- |
-| Abstention rate | [OK] | `abstention_rate` |
+| Abstention rate | [OK] (window [0.10, 0.30]; one band lost per 0.10 outside) | `abstention_rate` |
 | Escalation appropriateness | [OK] | `escalation_appropriateness` |
 | Latency | [OK] (live-measurable, not just pre-measured-value-only) | `latency` |
 | Throughput | [OK] | `throughput` |
@@ -62,11 +62,12 @@ reason noted.
 | Task success rate | [OK] | `task_success` |
 | Sub-goal / progress | [OK] | `subgoal_progress` |
 | Pass@k (agent) | [OK] (unbiased estimator, verified against known reference values) | `pass_at_k_agent` |
+| Pass^k (agent) | [OK] (all k runs succeed; reliability of binary outcomes, added with the metric updates) | `pass_hat_k_agent` |
 | Tool-call accuracy | [OK] | `tool_call_accuracy` |
 | Step efficiency | [OK] | `step_efficiency` |
 | Trajectory optimality | [BLOCKED -- Comparative family needs a live, versioned consortium score pool we don't maintain; the within-set relative-normalisation approach used for Judge Elo could plausibly adapt here, not yet attempted] | -- |
 | Error recovery rate | [OK] (data need is fault-injection trials; WP4 doesn't currently expose a fault-injection harness, but the metric itself doesn't need to wait for that) | `error_recovery_rate` |
-| Consistency | [OK] | `cross_run_consistency` -- see also `trial_consistency` (reflective, within one trial loop, a different question) |
+| Consistency | [OK] (mean of per-problem run variances, one C-family band; use `pass_hat_k_agent` for binary outcomes) | `cross_run_consistency` -- see also `trial_consistency` (reflective, within one trial loop, a different question) |
 | Unsafe-action rate | [OK] --  implemented with veto logic | `unsafe_action_rate` |
 | Interruptibility | [BLOCKED -- live-intervention hook, none of the reviewed patterns expose one] | -- |
 | Override success | [BLOCKED -- same live-intervention gap] | -- |
@@ -83,11 +84,11 @@ All 10 Multimodal patters [BLOCKED -- no multimodal pattern reviewed in WP4's pa
 
 | Metric | Status | Our metric_id |
 |---|---|---|
-| Judge-human agreement | [OK] (Pearson correlation) | `judge_human_agreement` |
-| Inter-rater reliability | [OK] (Cohen's Kappa; Krippendorff's alpha, the >2-rater generalisation, not implemented -- a known, disclosed gap) | `inter_rater_reliability` |
-| Metric validity | [OK] (same correlation math as Judge-human agreement, different data source) | `metric_validity` |
+| Judge-human agreement | [OK] (Pearson correlation, banded on max(0, r)) | `judge_human_agreement` |
+| Inter-rater reliability | [OK] (Cohen's Kappa, banded on max(0, kappa); Krippendorff's alpha, the >2-rater generalisation, not implemented -- a known, disclosed gap) | `inter_rater_reliability` |
+| Metric validity | [OK] (banded on max(0, r); same correlation math as Judge-human agreement, different data source) | `metric_validity` |
 | Discriminative power | [OK] (eta-squared, the standard ANOVA effect-size statistic) | `discriminative_power` |
-| Test-retest stability | [OK] (mathematically identical to `cross_run_consistency`, kept separate: this asks whether the EVALUATION PROCESS is stable on rerun, that asks whether the AGENT's behaviour is) | `test_retest_stability` |
+| Test-retest stability | [OK] (same aggregation as `cross_run_consistency`, kept separate: this asks whether the EVALUATION PROCESS is stable on rerun, that asks whether the AGENT's behaviour is) | `test_retest_stability` |
 | Sensitivity | [OK] (accuracy on known-gap system pairs) | `sensitivity` |
 | Contamination / leakage | [OK] | `contamination` |
 | Judge bias | [OK] (mean absolute score shift from a controlled artefact) | `judge_bias` |
@@ -102,10 +103,10 @@ human-centric explainability evaluation.
 
 ## The integration layer -- `contracts/registry.py` and `harness/`
 
-`contracts/registry.py` is a machine-readable catalogue of all 44
+`contracts/registry.py` is a machine-readable catalogue of all 46
 metrics: applicability, dimensions, which method to call, and what
 extra data (if any) it needs beyond the trajectory itself. Exists
-because 44 metrics with genuinely different call signatures
+because 46 metrics with genuinely different call signatures
 (`evaluate`, `evaluate_with_target`, `evaluate_with_oracle`,
 `evaluate_labeled_set`, `evaluate_trials`, ...) isn't discoverable by
 reading source files one at a time -- this is docs/pattern_metric_matrix.md,

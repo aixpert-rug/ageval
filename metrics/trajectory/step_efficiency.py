@@ -84,7 +84,7 @@ class StepEfficiencyEvaluator(WP3Evaluator):
             else:
                 raise ValueError(
                     f"actual_steps is 0 but optimal_steps is {optimal_steps} -- "
-                    "undefined ratio. Check Task Success / Reward Hacking for "
+                    "undefined ratio. Check Task Success for "
                     "this trajectory first; Step Efficiency assumes the task "
                     "was actually completed."
                 )

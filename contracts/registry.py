@@ -1,6 +1,6 @@
 """
 Machine-readable Level 2 catalogue -- every metric in this repo,
-what it needs, and how to call it. Exists because 42 metrics across 8
+what it needs, and how to call it. Exists because dozens of metrics across 9
 applicability categories with inconsistent method signatures
 (evaluate, evaluate_with_target, evaluate_with_oracle,
 evaluate_labeled_set, evaluate_trials, ...) is not discoverable by
@@ -60,7 +60,8 @@ from metrics.aggregate.escalation_appropriateness import EscalationAppropriatene
 from metrics.aggregate.help_seeking import HelpSeekingEvaluator
 from metrics.aggregate.judge_elo import JudgeEloEvaluator
 from metrics.aggregate.pass_at_k import PassAtKAgentEvaluator
-from metrics.aggregate.refusal_rate import RefusalRateEvaluator
+from metrics.aggregate.pass_hat_k import PassHatKAgentEvaluator
+from metrics.aggregate.refusal_rate import SafeRefusalRateEvaluator, UnsafeRefusalRateEvaluator
 from metrics.aggregate.unsafe_action_rate import UnsafeActionRateEvaluator
 
 from metrics.meta_evaluation.contamination import ContaminationEvaluator
@@ -123,10 +124,12 @@ REGISTRY: list[MetricSpec] = [
     MetricSpec("ece", ECEEvaluator, "probabilistic", ("Transparency & Explainability",), "evaluate_predictions", single_trajectory=False),
 
     MetricSpec("cross_run_consistency", CrossRunConsistencyEvaluator, "aggregate", ("Robustness",), "evaluate_runs", single_trajectory=False),
-    MetricSpec("refusal_rate", RefusalRateEvaluator, "aggregate", ("Safety, Security & Privacy",), "evaluate_labeled_set", single_trajectory=False),
+    MetricSpec("unsafe_refusal_rate", UnsafeRefusalRateEvaluator, "aggregate", ("Safety, Security & Privacy",), "evaluate_labeled_set", single_trajectory=False, notes="Higher is better (H). Scores the unsafe-labeled cases of a (trajectory, is_unsafe) set."),
+    MetricSpec("safe_refusal_rate", SafeRefusalRateEvaluator, "aggregate", ("Safety, Security & Privacy",), "evaluate_labeled_set", single_trajectory=False, notes="Over-refusal; lower is better (L). Scores the safe-labeled cases of the same set."),
     MetricSpec("abstention_rate", AbstentionRateEvaluator, "aggregate", ("Autonomy",), "evaluate_labeled_set", single_trajectory=False),
     MetricSpec("help_seeking", HelpSeekingEvaluator, "aggregate", ("Autonomy",), "evaluate_labeled_set", single_trajectory=False),
     MetricSpec("pass_at_k_agent", PassAtKAgentEvaluator, "aggregate", ("Accuracy",), "evaluate_problems", single_trajectory=False),
+    MetricSpec("pass_hat_k_agent", PassHatKAgentEvaluator, "aggregate", ("Accuracy",), "evaluate_problems", single_trajectory=False, notes="pass^k reliability: all k runs succeed. Same (n, c) input as pass_at_k_agent."),
     MetricSpec("judge_elo", JudgeEloEvaluator, "aggregate", ("Accuracy",), "compute_ratings", single_trajectory=False),
     MetricSpec("escalation_appropriateness", EscalationAppropriatenessEvaluator, "aggregate", ("Autonomy",), "evaluate_labeled_set", single_trajectory=False),
     MetricSpec("error_recovery_rate", ErrorRecoveryRateEvaluator, "aggregate", ("Robustness",), "evaluate_labeled_set", single_trajectory=False),

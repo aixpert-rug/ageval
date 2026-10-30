@@ -4,7 +4,7 @@ Abstention / deferral rate -- Level 2 metric under Oversight.
 Applicability: aggregate. Needs a labeled answerable/unanswerable case
 set and, critically, a caller-supplied detector for "did the agent
 abstain on this case" -- deliberately NOT given a default, unlike
-RefusalRateEvaluator (which ships a baseline phrase detector). Unlike refusal (a fairly
+the refusal metrics (which ship a baseline phrase detector). Unlike refusal (a fairly
 well-bounded set of "I cannot help with X" phrasings), abstention/deferral language is far more
 domain- and task-specific ("I don't have enough information to
 determine X" vs. simply not answering a sub-question vs. asking a
